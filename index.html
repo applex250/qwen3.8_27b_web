@@ -1,0 +1,1809 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="拾光咖啡——精选全球四大产区精品豆，小批量新鲜烘焙，48 小时新鲜送达。">
+<title>拾光咖啡 · 把时间泡进一杯好咖啡</title>
+<style>
+  :root{
+    --cream:#faf6f0;
+    --cream-2:#f3ece2;
+    --espresso:#2b1d16;
+    --cocoa:#5a4232;
+    --amber:#c97b3d;
+    --amber-soft:#e8a765;
+    --radius:18px;
+    --shadow:0 20px 50px rgba(43,29,22,.12);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+    background:var(--cream);
+    color:var(--espresso);
+    line-height:1.7;
+    overflow-x:hidden;
+  }
+  ::selection{background:var(--amber);color:#fff}
+
+  /* ---------- 导航 ---------- */
+  .nav{
+    position:fixed;inset:0 0 auto 0;z-index:100;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:18px 6vw;
+    transition:all .4s ease;
+  }
+  .nav.scrolled{
+    background:rgba(250,246,240,.85);
+    backdrop-filter:blur(14px);
+    box-shadow:0 6px 24px rgba(43,29,22,.08);
+    padding:12px 6vw;
+  }
+  .logo{font-size:1.4rem;font-weight:800;letter-spacing:.06em;display:flex;align-items:center;gap:10px}
+  .logo .bean{
+    width:30px;height:30px;border-radius:50% 50% 50% 4px;
+    background:linear-gradient(135deg,var(--amber),var(--espresso));
+    display:grid;place-items:center;color:#fff;font-size:.8rem;
+    transform:rotate(-20deg);
+  }
+  .nav-links{display:flex;gap:34px;list-style:none}
+  .nav-links a{
+    color:var(--cocoa);text-decoration:none;font-size:.95rem;font-weight:500;
+    position:relative;transition:color .3s;
+  }
+  .nav-links a::after{
+    content:"";position:absolute;left:0;bottom:-6px;width:0;height:2px;
+    background:var(--amber);transition:width .3s;
+  }
+  .nav-links a:hover{color:var(--espresso)}
+  .nav-links a:hover::after{width:100%}
+  .nav-links a.active{color:var(--espresso)}
+  .nav-links a.active::after{width:100%}
+  .nav-cta{
+    background:var(--espresso);color:#fff;border:none;cursor:pointer;
+    padding:10px 24px;border-radius:999px;font-size:.9rem;font-weight:600;
+    transition:transform .3s,box-shadow .3s;
+  }
+  .nav-cta:hover{transform:translateY(-2px);box-shadow:0 10px 20px rgba(43,29,22,.25)}
+  .nav-actions{display:flex;align-items:center;gap:12px}
+  .nav-cart{position:relative;width:42px;height:42px;border-radius:50%;
+    background:rgba(43,29,22,.08);border:none;cursor:pointer;font-size:1.1rem;
+    display:grid;place-items:center;transition:background .3s}
+  .nav-cart:hover{background:rgba(201,123,61,.22)}
+  .nav-cart .count{position:absolute;top:-4px;right:-4px;min-width:19px;height:19px;padding:0 5px;
+    border-radius:999px;background:var(--amber);color:#fff;font-size:.7rem;font-weight:700;
+    display:grid;place-items:center}
+  .nav-cart .count.bump{animation:bump .4s}
+  @keyframes bump{50%{transform:scale(1.4)}}
+  .menu-btn{display:none;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--espresso)}
+
+  /* ---------- 滚动进度 / 回顶 / toast ---------- */
+  .progress{position:fixed;top:0;left:0;height:3px;width:0;z-index:200;
+    background:linear-gradient(90deg,var(--amber),var(--amber-soft))}
+  .to-top{
+    position:fixed;right:26px;bottom:26px;width:46px;height:46px;border-radius:50%;
+    background:var(--espresso);color:#fff;border:none;cursor:pointer;font-size:1.15rem;
+    box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:all .35s;z-index:150;
+  }
+  .to-top.show{opacity:1;pointer-events:auto}
+  .to-top:hover{background:var(--amber);transform:translateY(-4px)}
+  .toast{
+    position:fixed;left:50%;bottom:34px;transform:translate(-50%,16px);z-index:300;
+    background:var(--espresso);color:#fff;padding:12px 24px;border-radius:999px;
+    font-size:.9rem;box-shadow:var(--shadow);opacity:0;pointer-events:none;
+    transition:all .35s;max-width:88vw;
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+
+  /* ---------- 购物袋抽屉 ---------- */
+  .cart-overlay{position:fixed;inset:0;z-index:240;background:rgba(43,29,22,.45);
+    backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .35s}
+  .cart-overlay.show{opacity:1;pointer-events:auto}
+  .cart-drawer{position:fixed;top:0;right:0;height:100dvh;width:min(400px,92vw);z-index:250;
+    background:var(--cream);box-shadow:-20px 0 60px rgba(43,29,22,.2);
+    transform:translateX(105%);transition:transform .4s cubic-bezier(.2,.8,.2,1);
+    display:flex;flex-direction:column}
+  .cart-drawer.show{transform:translateX(0)}
+  .cart-head{display:flex;align-items:center;justify-content:space-between;padding:22px 24px;
+    border-bottom:1px solid rgba(43,29,22,.1)}
+  .cart-head h3{font-size:1.15rem;display:flex;align-items:center;gap:10px}
+  .cart-head .close{width:36px;height:36px;border-radius:50%;border:none;cursor:pointer;
+    background:rgba(43,29,22,.08);font-size:1.1rem;color:var(--cocoa);transition:all .3s;line-height:1}
+  .cart-head .close:hover{background:var(--espresso);color:#fff;transform:rotate(90deg)}
+  .cart-body{flex:1;overflow-y:auto;padding:18px 24px}
+  .cart-empty{text-align:center;color:#9b8a78;padding:60px 0}
+  .cart-empty i{font-style:normal;font-size:2.4rem;display:block;margin-bottom:12px}
+  .cart-item{display:flex;gap:14px;padding:16px 0;border-bottom:1px dashed rgba(43,29,22,.12);align-items:center}
+  .cart-item .ci-icon{width:52px;height:52px;border-radius:14px;flex-shrink:0;display:grid;place-items:center;
+    font-size:1.5rem;background:linear-gradient(135deg,rgba(201,123,61,.15),rgba(43,29,22,.08))}
+  .cart-item .ci-info{flex:1;min-width:0}
+  .cart-item .ci-info b{display:block;font-size:.92rem;margin-bottom:4px}
+  .cart-item .ci-info small{color:#9b8a78;font-size:.78rem}
+  .ci-qty{display:flex;align-items:center;gap:8px}
+  .ci-qty button{width:26px;height:26px;border-radius:50%;border:1.5px solid rgba(43,29,22,.2);
+    background:#fff;cursor:pointer;font-size:.9rem;color:var(--cocoa);line-height:1;transition:all .25s;padding:0}
+  .ci-qty button:hover{border-color:var(--amber);color:var(--amber)}
+  .ci-qty b{min-width:20px;text-align:center;font-size:.9rem}
+  .ci-price{font-weight:800;color:var(--amber);font-size:.95rem;min-width:56px;text-align:right}
+  .cart-foot{padding:20px 24px 24px;border-top:1px solid rgba(43,29,22,.1);background:#fff}
+  .cart-sub{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px}
+  .cart-sub span{color:var(--cocoa);font-size:.92rem}
+  .cart-sub b{font-size:1.4rem;color:var(--espresso)}
+  .cart-sub b em{font-style:normal;font-size:.8rem;color:var(--amber)}
+  .cart-checkout{width:100%;padding:15px;border:none;border-radius:999px;cursor:pointer;
+    background:var(--espresso);color:#fff;font-size:1rem;font-weight:700;transition:all .3s}
+  .cart-checkout:hover{background:var(--amber);transform:translateY(-2px);box-shadow:0 12px 24px rgba(201,123,61,.3)}
+
+  /* ---------- 冲煮计时器 ---------- */
+  .timer{background:#fff;border-radius:var(--radius);padding:30px 28px;box-shadow:0 8px 24px rgba(43,29,22,.06);
+    text-align:center;transition:transform .35s,box-shadow .35s}
+  .timer:hover{transform:translateY(-8px);box-shadow:var(--shadow)}
+  .timer .t-ring{width:150px;height:150px;margin:18px auto 8px;position:relative;border-radius:50%;
+    background:conic-gradient(var(--amber) calc(var(--p,0)*1%), rgba(43,29,22,.08) 0)}
+  .timer .t-ring::before{content:"";position:absolute;inset:12px;border-radius:50%;background:#fff}
+  .timer .t-time{position:absolute;inset:0;display:grid;place-items:center;font-size:2rem;font-weight:800;
+    font-variant-numeric:tabular-nums;color:var(--espresso)}
+  .timer .t-step{font-size:.85rem;color:var(--cocoa);min-height:1.4em;margin:8px 0 16px}
+  .timer .t-step b{color:var(--amber)}
+  .t-controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .t-btn{padding:10px 22px;border-radius:999px;border:none;cursor:pointer;font-size:.9rem;font-weight:600;transition:all .3s}
+  .t-btn.go{background:var(--amber);color:#fff}
+  .t-btn.go:hover{transform:translateY(-2px);box-shadow:0 10px 20px rgba(201,123,61,.3)}
+  .t-btn.ghost{background:rgba(43,29,22,.08);color:var(--cocoa)}
+  .t-btn.ghost:hover{background:rgba(43,29,22,.15)}
+  .t-presets{display:flex;gap:8px;justify-content:center;margin-bottom:6px;flex-wrap:wrap}
+  .t-preset{font-size:.75rem;padding:5px 14px;border-radius:999px;border:1px solid rgba(43,29,22,.15);
+    background:transparent;color:var(--cocoa);cursor:pointer;transition:all .3s}
+  .t-preset.active{background:var(--espresso);border-color:var(--espresso);color:#fff}
+
+  /* ---------- 产区地图 ---------- */
+  .map-wrap{background:linear-gradient(135deg,#fff,#f6efe3);border-radius:26px;padding:34px 30px;
+    box-shadow:0 8px 24px rgba(43,29,22,.06);margin-bottom:40px;position:relative;overflow:hidden}
+  .map-wrap svg{width:100%;height:auto;display:block}
+  .map-land{fill:#e6d8c4}
+  .map-sea{fill:#eef3f4}
+  .map-dot{fill:var(--amber)}
+  .map-ring{fill:none;stroke:var(--amber);stroke-width:2;transform-origin:center;animation:mappulse 2s ease-out infinite}
+  .map-label{font-size:11px;font-weight:700;fill:var(--espresso)}
+  .map-line{stroke:var(--amber);stroke-width:1.2;stroke-dasharray:3 4;opacity:.5}
+  @keyframes mappulse{0%{opacity:.8;transform:scale(.4)}100%{opacity:0;transform:scale(2.4)}}
+  .map-legend{display:flex;gap:22px;flex-wrap:wrap;justify-content:center;margin-top:18px;font-size:.82rem;color:var(--cocoa)}
+  .map-legend span{display:flex;align-items:center;gap:7px}
+  .map-legend i{width:10px;height:10px;border-radius:50%;background:var(--amber)}
+
+  /* ---------- 礼品卡 ---------- */
+  .gift{background:var(--cream-2)}
+  .gift-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:5vw;align-items:center}
+  .gift-card-visual{position:relative;aspect-ratio:1.58/1;border-radius:22px;padding:26px;
+    background:linear-gradient(135deg,var(--espresso),#5a4232 60%,var(--amber));color:#fff;
+    box-shadow:0 26px 60px rgba(43,29,22,.3);display:flex;flex-direction:column;justify-content:space-between;
+    transform:rotate(-3deg);transition:transform .4s}
+  .gift-card-visual:hover{transform:rotate(0) scale(1.02)}
+  .gift-card-visual::before{content:"";position:absolute;inset:0;border-radius:22px;
+    background:radial-gradient(200px 120px at 80% 15%,rgba(255,255,255,.2),transparent 60%);pointer-events:none}
+  .gc-top{display:flex;justify-content:space-between;align-items:flex-start}
+  .gc-brand{font-weight:800;letter-spacing:.08em;display:flex;align-items:center;gap:8px}
+  .gc-chip{width:44px;height:32px;border-radius:7px;background:linear-gradient(135deg,#e8a765,#c97b3d);
+    box-shadow:inset 0 0 0 2px rgba(255,255,255,.4)}
+  .gc-amount{font-size:2.4rem;font-weight:800}
+  .gc-amount small{font-size:.9rem;font-weight:400;opacity:.8}
+  .gc-bottom{display:flex;justify-content:space-between;align-items:flex-end;font-size:.78rem;opacity:.85}
+  .gift-text h3{font-size:1.5rem;font-weight:800;margin-bottom:16px;line-height:1.4}
+  .gift-text p{color:var(--cocoa);font-size:.96rem;margin-bottom:14px}
+  .gift-options{display:flex;gap:10px;flex-wrap:wrap;margin:22px 0 26px}
+  .gift-opt{padding:10px 20px;border-radius:14px;border:1.5px solid rgba(43,29,22,.15);background:#fff;
+    font-weight:700;cursor:pointer;transition:all .3s;font-size:.95rem}
+  .gift-opt.active{background:var(--amber);border-color:var(--amber);color:#fff;box-shadow:0 10px 20px rgba(201,123,61,.28)}
+  .gift-opt:hover{border-color:var(--amber)}
+
+  /* ---------- 评价轮播 ---------- */
+  .quotes-slider{position:relative;max-width:760px;margin:0 auto}
+  .quotes-view{overflow:hidden;border-radius:var(--radius)}
+  .quotes-track{display:flex;transition:transform .6s cubic-bezier(.2,.8,.2,1)}
+  .quotes-track .quote{min-width:100%;margin:0}
+  .quotes-dots{display:flex;gap:9px;justify-content:center;margin-top:22px}
+  .quotes-dot{width:9px;height:9px;border-radius:99px;border:none;cursor:pointer;padding:0;
+    background:rgba(43,29,22,.18);transition:all .3s}
+  .quotes-dot.active{width:26px;background:var(--amber)}
+  .quotes-arrow{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;
+    border:none;background:rgba(255,255,255,.9);box-shadow:0 8px 20px rgba(43,29,22,.15);cursor:pointer;
+    font-size:1.1rem;color:var(--cocoa);transition:all .3s;z-index:2}
+  .quotes-arrow:hover{background:var(--amber);color:#fff}
+  .quotes-arrow.prev{left:-18px}
+  .quotes-arrow.next{right:-18px}
+
+  /* ---------- Hero ---------- */
+  .hero{
+    min-height:100vh;display:flex;align-items:center;
+    padding:120px 6vw 60px;position:relative;
+  }
+  .hero::before{
+    content:"";position:absolute;inset:0;z-index:-1;
+    background:
+      radial-gradient(600px 400px at 85% 15%, rgba(201,123,61,.18), transparent 60%),
+      radial-gradient(500px 400px at 10% 85%, rgba(232,167,101,.15), transparent 60%);
+  }
+  .hero-inner{display:grid;grid-template-columns:1.1fr .9fr;gap:5vw;align-items:center;width:100%}
+  .hero-badge{
+    display:inline-flex;align-items:center;gap:8px;
+    background:#fff;border:1px solid rgba(201,123,61,.3);
+    padding:8px 18px;border-radius:999px;font-size:.85rem;color:var(--cocoa);
+    margin-bottom:26px;box-shadow:0 6px 18px rgba(43,29,22,.06);
+  }
+  .hero-badge .dot{width:8px;height:8px;border-radius:50%;background:var(--amber);animation:pulse 1.6s infinite}
+  @keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.5);opacity:.5}}
+  .hero h1{
+    font-size:clamp(2.4rem,5.2vw,4.2rem);
+    line-height:1.2;font-weight:800;letter-spacing:.02em;margin-bottom:22px;
+  }
+  .hero h1 .grad{
+    background:linear-gradient(120deg,var(--amber) 20%,var(--espresso) 90%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .hero p{font-size:1.08rem;color:var(--cocoa);max-width:46ch;margin-bottom:36px}
+  .hero-btns{display:flex;gap:16px;flex-wrap:wrap}
+  .btn-primary,.btn-ghost{
+    padding:14px 32px;border-radius:999px;font-size:1rem;font-weight:600;cursor:pointer;
+    transition:all .3s;text-decoration:none;display:inline-block;
+  }
+  .btn-primary{background:var(--amber);color:#fff;border:none;box-shadow:0 12px 26px rgba(201,123,61,.35)}
+  .btn-primary:hover{transform:translateY(-3px);box-shadow:0 16px 32px rgba(201,123,61,.45)}
+  .btn-ghost{background:transparent;color:var(--espresso);border:2px solid rgba(43,29,22,.25)}
+  .btn-ghost:hover{border-color:var(--amber);color:var(--amber)}
+  .hero-mini{display:flex;gap:36px;flex-wrap:wrap;margin-top:44px}
+  .hero-mini b{display:block;font-size:1.5rem;font-weight:800;color:var(--espresso)}
+  .hero-mini span{font-size:.82rem;color:#9b8a78}
+  .scroll-hint{
+    position:absolute;bottom:22px;left:50%;transform:translateX(-50%);
+    color:#9b8a78;font-size:.75rem;letter-spacing:.3em;display:flex;flex-direction:column;
+    align-items:center;gap:2px;animation:bob 2s ease-in-out infinite;
+  }
+  .scroll-hint i{font-style:normal;font-size:1rem;color:var(--amber)}
+  @keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,8px)}}
+
+  /* 咖啡杯插画 */
+  .hero-art{display:grid;place-items:center;perspective:800px}
+  .cup-wrap{position:relative;transition:transform .2s ease-out}
+  .cup{
+    width:min(320px,70vw);aspect-ratio:1/1.05;border-radius:46% 46% 40% 40%;
+    background:linear-gradient(160deg,#fff 0%,#f7efe4 55%,#e9dcc9 100%);
+    box-shadow:var(--shadow), inset 0 -14px 30px rgba(43,29,22,.08);
+    display:grid;place-items:center;position:relative;
+  }
+  .coffee{
+    width:72%;aspect-ratio:1;border-radius:50%;
+    background:
+      radial-gradient(circle at 35% 30%, rgba(255,255,255,.25), transparent 45%),
+      radial-gradient(circle at 60% 65%, #6f4a2f, #3c2417 70%);
+    box-shadow:inset 0 8px 22px rgba(0,0,0,.35), 0 4px 12px rgba(43,29,22,.15);
+    position:relative;overflow:hidden;
+  }
+  .coffee::after{ /* 拉花 */
+    content:"";position:absolute;inset:0;margin:auto;width:58%;height:58%;
+    border-radius:50%;
+    background:
+      radial-gradient(circle at 50% 40%, #f3e2c7 18%, transparent 19%),
+      conic-gradient(from 0deg, transparent 0 25%, #f3e2c7 25% 35%, transparent 35% 60%, #f3e2c7 60% 70%, transparent 70%);
+    opacity:.85;filter:blur(.4px);
+  }
+  .steam{position:absolute;top:-34px;left:50%;transform:translateX(-50%);display:flex;gap:16px}
+  .steam span{
+    width:10px;height:44px;border-radius:10px;
+    background:linear-gradient(to top, rgba(201,123,61,.5), transparent);
+    animation:steam 2.4s ease-in-out infinite;
+  }
+  .steam span:nth-child(2){animation-delay:.5s;height:54px}
+  .steam span:nth-child(3){animation-delay:1s}
+  @keyframes steam{
+    0%{transform:translateY(8px) scaleY(.7);opacity:0}
+    40%{opacity:.9}
+    100%{transform:translateY(-18px) scaleY(1.1);opacity:0}
+  }
+  .float-tag{
+    position:absolute;background:#fff;border-radius:14px;padding:10px 16px;
+    font-size:.82rem;font-weight:600;color:var(--cocoa);box-shadow:var(--shadow);
+    display:flex;align-items:center;gap:8px;animation:float 4s ease-in-out infinite;
+  }
+  .float-tag small{display:block;font-weight:400;color:#9b8a78}
+  .tag-1{top:8%;right:-6%}
+  .tag-2{bottom:10%;left:-8%;animation-delay:1.4s}
+  .tag-3{top:-3%;left:-4%;animation-delay:2.2s}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+
+  /* ---------- 跑马灯 ---------- */
+  .marquee{
+    background:var(--espresso);color:var(--cream);
+    overflow:hidden;padding:16px 0;transform:rotate(-1.2deg) scale(1.02);
+  }
+  .marquee-track{display:flex;gap:48px;white-space:nowrap;animation:scroll 22s linear infinite}
+  .marquee-track span{font-size:.95rem;letter-spacing:.15em;display:flex;align-items:center;gap:48px}
+  .marquee-track i{font-style:normal;color:var(--amber-soft)}
+  @keyframes scroll{to{transform:translateX(-50%)}}
+
+  /* ---------- 通用 section ---------- */
+  section{padding:100px 6vw}
+  section[id],.cta-box{scroll-margin-top:90px}
+  .sec-head{text-align:center;max-width:640px;margin:0 auto 64px}
+  .sec-head .kicker{
+    color:var(--amber);font-weight:700;letter-spacing:.3em;font-size:.85rem;text-transform:uppercase;
+  }
+  .sec-head h2{font-size:clamp(1.8rem,3.4vw,2.6rem);font-weight:800;margin:12px 0 14px}
+  .sec-head p{color:var(--cocoa)}
+
+  /* ---------- 产品 ---------- */
+  .products{background:var(--cream-2)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:26px}
+  .card{
+    background:#fff;border-radius:var(--radius);padding:34px 28px;
+    box-shadow:0 8px 24px rgba(43,29,22,.06);
+    transition:transform .35s,box-shadow .35s;position:relative;overflow:hidden;
+    display:flex;flex-direction:column;
+  }
+  .card::before{
+    content:"";position:absolute;inset:0 0 auto 0;height:4px;
+    background:linear-gradient(90deg,var(--amber),var(--amber-soft));
+    transform:scaleX(0);transform-origin:left;transition:transform .4s;
+  }
+  .card:hover{transform:translateY(-10px);box-shadow:var(--shadow)}
+  .card:hover::before{transform:scaleX(1)}
+  .card .emoji{
+    width:58px;height:58px;border-radius:16px;display:grid;place-items:center;font-size:1.7rem;
+    background:linear-gradient(135deg,rgba(201,123,61,.15),rgba(43,29,22,.08));margin-bottom:20px;
+  }
+  .card h3{font-size:1.15rem;margin-bottom:10px}
+  .card p{font-size:.92rem;color:var(--cocoa);margin-bottom:18px}
+  .card .price{font-weight:800;font-size:1.25rem;color:var(--amber)}
+  .card .price small{font-size:.8rem;color:#9b8a78;font-weight:400}
+  .corner{position:absolute;top:14px;right:14px;background:var(--amber);color:#fff;
+    font-size:.7rem;font-weight:700;padding:4px 12px;border-radius:999px;letter-spacing:.05em;z-index:1}
+  .card .tags{display:flex;gap:6px;flex-wrap:wrap;margin:-6px 0 14px}
+  .card .tag{font-size:.72rem;padding:3px 10px;border-radius:999px;
+    background:rgba(201,123,61,.12);color:var(--cocoa)}
+  .flavors{display:grid;gap:8px;margin-bottom:16px}
+  .flavor{display:grid;grid-template-columns:34px 1fr 26px;align-items:center;gap:10px;
+    font-size:.75rem;color:#9b8a78}
+  .flavor .bar{height:6px;border-radius:99px;background:rgba(43,29,22,.08);overflow:hidden}
+  .flavor .bar i{display:block;height:100%;width:0;border-radius:99px;
+    background:linear-gradient(90deg,var(--amber-soft),var(--amber));transition:width 1s ease .35s}
+  .card.show .flavor .bar i{width:var(--w)}
+  .flavor em{font-style:normal;font-size:.72rem;text-align:right}
+  .roast{display:flex;align-items:center;gap:6px;font-size:.75rem;color:#9b8a78;margin-bottom:16px}
+  .roast i{width:9px;height:9px;border-radius:50%;background:rgba(43,29,22,.12)}
+  .roast i.on{background:var(--cocoa)}
+  .roast em{font-style:normal;margin-left:auto}
+  .stock{margin:-4px 0 16px;font-size:.75rem;color:#9b8a78}
+  .stock .s-bar{height:5px;border-radius:99px;background:rgba(43,29,22,.08);overflow:hidden;margin:6px 0 4px}
+  .stock .s-bar i{display:block;height:100%;border-radius:99px;
+    background:linear-gradient(90deg,var(--amber-soft),var(--amber))}
+  .stock b{color:var(--amber)}
+  .card-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:auto}
+  .add-btn{background:var(--espresso);color:#fff;border:none;border-radius:999px;
+    padding:9px 16px;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .3s;white-space:nowrap}
+  .add-btn:hover{background:var(--amber);transform:translateY(-2px)}
+
+  /* 产品筛选 */
+  .filters{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-bottom:40px}
+  .filter-btn{padding:9px 22px;border-radius:999px;border:1.5px solid rgba(43,29,22,.18);
+    background:transparent;color:var(--cocoa);font-size:.88rem;cursor:pointer;transition:all .3s}
+  .filter-btn:hover{border-color:var(--amber);color:var(--amber)}
+  .filter-btn.active{background:var(--espresso);border-color:var(--espresso);color:#fff}
+  .card.hide{display:none}
+
+  /* ---------- 烘焙批次倒计时 ---------- */
+  .batch{background:var(--espresso);color:var(--cream);border-radius:26px;margin:0 4vw;
+    padding:36px 5vw;display:flex;align-items:center;justify-content:space-between;
+    gap:30px;flex-wrap:wrap;position:relative;overflow:hidden}
+  .batch::before{content:"";position:absolute;inset:0;
+    background:radial-gradient(420px 220px at 90% 0%,rgba(201,123,61,.28),transparent 60%)}
+  .batch>*{position:relative}
+  .batch small{display:block;color:rgba(250,246,240,.55);font-size:.8rem;letter-spacing:.1em;margin-bottom:6px}
+  .batch b{font-size:1.35rem;font-weight:800}
+  .batch .sub{display:block;color:rgba(250,246,240,.7);font-size:.85rem;margin-top:8px}
+  .countdown{display:flex;gap:12px}
+  .count-box{min-width:64px;text-align:center;background:rgba(250,246,240,.08);
+    border:1px solid rgba(250,246,240,.16);border-radius:14px;padding:12px 0}
+  .count-box b{font-size:1.5rem;color:var(--amber-soft);font-variant-numeric:tabular-nums}
+  .count-box span{display:block;font-size:.72rem;color:rgba(250,246,240,.6)}
+
+  /* ---------- 品牌故事 ---------- */
+  .story-grid{display:grid;grid-template-columns:1fr 1fr;gap:6vw;align-items:center;margin-bottom:84px}
+  .story-visual{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .tile{aspect-ratio:1;border-radius:22px;display:grid;place-items:center;font-size:2.6rem;
+    box-shadow:var(--shadow);transition:transform .4s}
+  .tile:hover{transform:scale(1.05) rotate(-2deg)}
+  .tile.t1{background:linear-gradient(135deg,#f0dcc3,#d9a86c)}
+  .tile.t2{background:linear-gradient(135deg,#e8d5c0,#8a5a3a);transform:translateY(22px)}
+  .tile.t3{background:linear-gradient(135deg,#d9c2a5,#5a4232);transform:translateY(-22px)}
+  .tile.t4{background:linear-gradient(135deg,#f7ead9,#c97b3d)}
+  .story-text h3{font-size:1.5rem;font-weight:800;margin-bottom:18px;line-height:1.4}
+  .story-text p{color:var(--cocoa);font-size:.98rem;margin-bottom:14px}
+  .story-points{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}
+  .story-points li{font-size:.88rem;color:var(--cocoa);background:rgba(201,123,61,.08);
+    padding:10px 14px;border-radius:12px}
+  .timeline{position:relative;max-width:640px;margin:0 auto;padding-left:34px}
+  .timeline::before{content:"";position:absolute;left:9px;top:8px;bottom:8px;width:2px;
+    background:linear-gradient(var(--amber),rgba(201,123,61,.08))}
+  .tl-item{position:relative;margin-bottom:34px}
+  .tl-item:last-child{margin-bottom:0}
+  .tl-item::before{content:"";position:absolute;left:-30px;top:6px;width:12px;height:12px;
+    border-radius:50%;background:var(--amber);box-shadow:0 0 0 4px rgba(201,123,61,.18)}
+  .tl-item small{color:var(--amber);font-weight:800;letter-spacing:.15em;font-size:.8rem}
+  .tl-item b{display:block;font-size:1.05rem;margin:4px 0 6px}
+  .tl-item p{color:var(--cocoa);font-size:.92rem}
+  .stats-wrap{padding-top:76px}
+
+  /* ---------- 数据 ---------- */
+  .stats{background:linear-gradient(135deg,var(--espresso),#432c1d);color:var(--cream);border-radius:32px;margin:0 4vw}
+  .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:36px;text-align:center;padding:44px 20px}
+  .stat b{font-size:clamp(2.2rem,4vw,3rem);font-weight:800;display:block;color:var(--amber-soft)}
+  .stat span{color:rgba(250,246,240,.7);font-size:.95rem}
+
+  /* ---------- 产区 ---------- */
+  .origins{background:var(--cream-2)}
+  .origin-card{background:#fff;border-radius:var(--radius);padding:30px 28px;
+    box-shadow:0 8px 24px rgba(43,29,22,.06);transition:transform .35s,box-shadow .35s;
+    position:relative;overflow:hidden}
+  .origin-card:hover{transform:translateY(-8px);box-shadow:var(--shadow)}
+  .origin-card .flag{font-size:2rem;display:block;margin-bottom:12px}
+  .origin-card h3{font-size:1.1rem;margin-bottom:2px}
+  .origin-card .region{color:var(--amber);font-size:.8rem;font-weight:700;margin-bottom:16px}
+  .o-meta{display:grid;gap:9px;font-size:.85rem;border-top:1px dashed rgba(43,29,22,.15);padding-top:16px}
+  .o-meta div{display:flex;justify-content:space-between;gap:10px}
+  .o-meta span{color:#9b8a78;flex-shrink:0}
+  .o-meta b{color:var(--cocoa);font-weight:600;text-align:right}
+
+  /* ---------- 烘焙流程 ---------- */
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:30px 24px;position:relative}
+  .steps::before{content:"";position:absolute;top:34px;left:10%;right:10%;height:2px;
+    background:repeating-linear-gradient(90deg,rgba(201,123,61,.35) 0 8px,transparent 8px 16px)}
+  .step{text-align:center;position:relative}
+  .step .num{width:68px;height:68px;margin:0 auto 20px;border-radius:50%;background:#fff;
+    border:2px solid rgba(201,123,61,.4);display:grid;place-items:center;font-size:1.6rem;
+    position:relative;z-index:1;box-shadow:0 8px 20px rgba(43,29,22,.08);transition:all .35s}
+  .step:hover .num{background:var(--amber);border-color:var(--amber);transform:scale(1.1)}
+  .step small{display:block;color:var(--amber);font-size:.72rem;letter-spacing:.25em;font-weight:800;margin-bottom:6px}
+  .step h3{font-size:1.05rem;margin-bottom:10px}
+  .step p{font-size:.88rem;color:var(--cocoa)}
+
+  /* ---------- 冲煮指南 ---------- */
+  .brew-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:26px}
+  .brew-card{background:#fff;border-radius:var(--radius);padding:32px 28px;
+    box-shadow:0 8px 24px rgba(43,29,22,.06);transition:transform .35s,box-shadow .35s}
+  .brew-card:hover{transform:translateY(-8px);box-shadow:var(--shadow)}
+  .brew-card .icon{font-size:2rem;margin-bottom:12px}
+  .brew-card h3{font-size:1.15rem}
+  .ratio{display:flex;align-items:center;gap:12px;margin:18px 0;font-size:.9rem;font-weight:800;color:var(--amber)}
+  .ratio .r-bar{flex:1;height:8px;border-radius:99px;background:rgba(43,29,22,.08);overflow:hidden}
+  .ratio .r-bar i{display:block;height:100%;border-radius:99px;
+    background:linear-gradient(90deg,var(--amber),#8a5a3a)}
+  .specs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+  .spec{background:var(--cream-2);border-radius:12px;padding:8px 14px;font-size:.75rem;color:#9b8a78}
+  .spec b{display:block;font-size:1rem;color:var(--espresso)}
+  .brew-steps{list-style:none;counter-reset:bs}
+  .brew-steps li{counter-increment:bs;font-size:.85rem;color:var(--cocoa);
+    padding:6px 0 6px 32px;position:relative}
+  .brew-steps li::before{content:counter(bs);position:absolute;left:0;top:8px;width:20px;height:20px;
+    border-radius:50%;background:rgba(201,123,61,.15);color:var(--amber);font-size:.72rem;
+    font-weight:800;display:grid;place-items:center}
+
+  /* ---------- 会员计划 ---------- */
+  .plans-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:26px;
+    max-width:980px;margin:0 auto 54px}
+  .plan{background:#fff;border-radius:24px;padding:36px 30px;box-shadow:0 8px 24px rgba(43,29,22,.06);
+    text-align:center;position:relative;border:2px solid transparent;
+    transition:transform .35s,box-shadow .35s}
+  .plan:hover{transform:translateY(-8px);box-shadow:var(--shadow)}
+  .plan.featured{border-color:var(--amber);box-shadow:0 18px 44px rgba(201,123,61,.22)}
+  .plan .badge{position:absolute;top:-14px;left:50%;transform:translateX(-50%);white-space:nowrap;
+    background:linear-gradient(90deg,var(--amber),var(--amber-soft));color:#fff;font-size:.75rem;
+    font-weight:700;padding:6px 18px;border-radius:999px;letter-spacing:.05em}
+  .plan h3{font-size:1.1rem}
+  .plan .p-desc{font-size:.82rem;color:#9b8a78;margin-top:4px}
+  .plan .p-price{font-size:2.2rem;font-weight:800;color:var(--amber);margin:16px 0 0}
+  .plan .p-price small{font-size:.85rem;color:#9b8a78;font-weight:400}
+  .plan ul{list-style:none;margin:24px 0 26px;display:grid;gap:11px}
+  .plan li{font-size:.88rem;color:var(--cocoa);padding-left:24px;position:relative;text-align:left}
+  .plan li::before{content:"✓";position:absolute;left:0;color:var(--amber);font-weight:800}
+  .plan .p-btn{width:100%;padding:13px;border-radius:999px;font-size:.95rem;font-weight:700;cursor:pointer;
+    border:none;background:var(--espresso);color:#fff;transition:all .3s}
+  .plan .p-btn:hover{background:var(--amber);transform:translateY(-2px)}
+  .plan .p-btn.ghost{background:transparent;color:var(--espresso);border:2px solid rgba(43,29,22,.25)}
+  .plan .p-btn.ghost:hover{background:transparent;border-color:var(--amber);color:var(--amber)}
+
+  /* ---------- 评价 ---------- */
+  .quotes-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:26px}
+  .quote{
+    background:#fff;border-radius:var(--radius);padding:30px;
+    box-shadow:0 8px 24px rgba(43,29,22,.06);position:relative;
+  }
+  .quote::before{
+    content:"“";position:absolute;top:6px;left:18px;font-size:4.5rem;color:rgba(201,123,61,.18);font-family:Georgia,serif;
+  }
+  .quote p{font-size:.95rem;color:var(--cocoa);margin:22px 0 20px;position:relative}
+  .quote .who{display:flex;align-items:center;gap:12px}
+  .quote .avatar{
+    width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;
+    background:linear-gradient(135deg,var(--amber),var(--espresso));
+  }
+  .quote .who b{display:block;font-size:.92rem}
+  .quote .who small{color:#9b8a78;font-size:.8rem}
+  .stars{color:var(--amber);letter-spacing:2px;font-size:.85rem}
+
+  /* ---------- FAQ ---------- */
+  .faq{max-width:760px;margin:0 auto}
+  .faq-item{background:#fff;border-radius:16px;margin-bottom:14px;overflow:hidden;
+    box-shadow:0 6px 18px rgba(43,29,22,.05)}
+  .faq-q{width:100%;background:none;border:none;padding:20px 24px;display:flex;
+    justify-content:space-between;align-items:center;gap:16px;cursor:pointer;
+    font-size:.98rem;font-weight:600;color:var(--espresso);text-align:left;font-family:inherit}
+  .faq-q .pm{font-size:1.4rem;color:var(--amber);transition:transform .3s;flex-shrink:0;line-height:1}
+  .faq-item.open .pm{transform:rotate(45deg)}
+  .faq-a{max-height:0;overflow:hidden;transition:max-height .4s ease}
+  .faq-a p{padding:0 24px 22px;color:var(--cocoa);font-size:.9rem}
+
+  /* ---------- CTA ---------- */
+  .cta-box{
+    background:
+      radial-gradient(500px 300px at 80% 20%, rgba(232,167,101,.35), transparent 60%),
+      linear-gradient(135deg,var(--amber),#a35c28);
+    border-radius:32px;padding:70px 8vw;text-align:center;color:#fff;
+    box-shadow:0 24px 60px rgba(201,123,61,.35);
+  }
+  .cta-box h2{font-size:clamp(1.8rem,3.4vw,2.5rem);font-weight:800;margin-bottom:14px}
+  .cta-box p{opacity:.9;margin-bottom:32px}
+  .cta-box input{
+    border:none;border-radius:999px;padding:14px 22px;width:min(320px,80%);
+    font-size:.95rem;outline:none;margin-bottom:14px;
+  }
+  .cta-box .btn-primary{background:var(--espresso);box-shadow:0 12px 26px rgba(43,29,22,.3)}
+
+  /* ---------- 页脚 ---------- */
+  footer{padding:70px 6vw 30px;border-top:1px solid rgba(43,29,22,.1);margin-top:40px}
+  .foot-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1.35fr;gap:40px;margin-bottom:48px}
+  .foot-grid h4{font-size:.95rem;margin-bottom:16px}
+  .foot-grid ul{list-style:none}
+  .foot-grid li{margin-bottom:10px}
+  .foot-grid a{color:var(--cocoa);text-decoration:none;font-size:.9rem;transition:color .3s}
+  .foot-grid a:hover{color:var(--amber)}
+  .foot-brand p{color:var(--cocoa);font-size:.9rem;max-width:32ch;margin-top:12px}
+  .foot-contact li{color:var(--cocoa);font-size:.86rem;margin-bottom:10px}
+  .socials{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+  .socials a{font-size:.78rem;color:var(--cocoa);text-decoration:none;
+    border:1px solid rgba(43,29,22,.18);padding:5px 14px;border-radius:999px;transition:all .3s}
+  .socials a:hover{border-color:var(--amber);color:var(--amber)}
+  .copyright{text-align:center;color:#9b8a78;font-size:.82rem;border-top:1px solid rgba(43,29,22,.08);padding-top:24px}
+
+  /* ---------- 滚动显现 ---------- */
+  .reveal{opacity:0;transform:translateY(36px);transition:opacity .8s ease,transform .8s ease}
+  .reveal.show{opacity:1;transform:translateY(0)}
+
+  /* ---------- 响应式 ---------- */
+  @media (max-width:860px){
+    .hero-inner{grid-template-columns:1fr;text-align:center}
+    .hero p{margin-inline:auto}
+    .hero-btns,.hero-badge{justify-content:center}
+    .hero-mini{justify-content:center}
+    .nav-links{
+      position:fixed;top:0;right:-100%;width:70%;height:100vh;
+      background:rgba(250,246,240,.97);backdrop-filter:blur(10px);
+      flex-direction:column;justify-content:center;align-items:center;gap:30px;
+      transition:right .4s;box-shadow:-10px 0 30px rgba(43,29,22,.1);
+    }
+    .nav-links.open{right:0}
+    .menu-btn{display:block;z-index:110}
+    .foot-grid{grid-template-columns:1fr 1fr}
+    .tag-1{right:0}.tag-2{left:0}.tag-3{left:0}
+    section{padding:70px 6vw}
+    .story-grid{grid-template-columns:1fr}
+    .story-visual{max-width:420px;margin:0 auto}
+    .steps{grid-template-columns:1fr 1fr}
+    .steps::before{display:none}
+    .batch{flex-direction:column;text-align:center;padding:34px 22px}
+    .countdown{justify-content:center;flex-wrap:wrap}
+    .plans-grid{max-width:440px}
+    .gift-grid{grid-template-columns:1fr;gap:44px}
+    .gift-card-visual{max-width:440px;margin:0 auto}
+    .map-wrap{padding:26px 16px}
+  }
+  @media (max-width:520px){
+    .nav-cta{display:none}
+    .nav-cart{width:38px;height:38px}
+    .steps{grid-template-columns:1fr}
+    .story-points{grid-template-columns:1fr}
+    .hero-mini{gap:22px}
+    .quotes-arrow.prev{left:6px}
+    .quotes-arrow.next{right:6px}
+    .t-ring{width:126px;height:126px}
+    .t-time{font-size:1.6rem}
+    .gc-amount{font-size:1.9rem}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  }
+  /* ---------- 冲煮比例计算器 ---------- */
+  .ratios{background:linear-gradient(135deg,rgba(43,29,22,.05),rgba(201,123,61,.07));
+    border:1px solid rgba(43,29,22,.12);border-radius:var(--radius);
+    padding:30px;max-width:860px;margin:26px auto 0}
+  .ratios-head{margin-bottom:22px}
+  .ratios-head .kicker{font-size:.72rem;letter-spacing:.18em;color:var(--amber);font-weight:700}
+  .ratios-head h3{font-size:1.3rem;font-weight:800;margin:8px 0 4px}
+  .ratios-head p{color:var(--cocoa);font-size:.9rem}
+  .ratios-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:18px;margin-bottom:22px}
+  .ratios-row label{display:flex;flex-direction:column;gap:8px;
+    font-size:.78rem;color:#9b8a78;font-weight:600;letter-spacing:.04em}
+  .r-chips{display:flex;gap:6px;flex-wrap:wrap}
+  .r-chip{padding:7px 14px;border-radius:999px;border:1.5px solid rgba(43,29,22,.2);
+    background:transparent;color:var(--cocoa);font-size:.85rem;cursor:pointer;
+    transition:all .3s;font-weight:500}
+  .r-chip:hover{border-color:var(--amber);color:var(--amber)}
+  .r-chip.active{background:var(--espresso);border-color:var(--espresso);color:#fff}
+  .ratios-row input{padding:9px 12px;border:1.5px solid rgba(43,29,22,.2);
+    border-radius:10px;font-size:.95rem;background:#fff;color:var(--espresso);
+    width:110px;font-weight:600}
+  .ratios-row input:focus{outline:none;border-color:var(--amber);
+    box-shadow:0 0 0 3px rgba(201,123,61,.18)}
+  .ratio-out{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+    gap:14px;padding:18px 20px;background:rgba(250,246,240,.65);
+    border-radius:14px;border:1px dashed rgba(43,29,22,.15)}
+  .ratio-out div{display:flex;flex-direction:column;gap:3px}
+  .ratio-out span{font-size:.72rem;color:#9b8a78;letter-spacing:.04em}
+  .ratio-out b{font-size:1.05rem;color:var(--espresso);font-weight:800}
+  .ratio-hint{margin-top:16px;font-size:.82rem;color:var(--cocoa)}
+
+  /* ---------- 烘焙曲线 ---------- */
+  .curve-wrap{max-width:780px;margin:64px auto 0;background:linear-gradient(135deg,rgba(43,29,22,.04),rgba(201,123,61,.05));
+    border:1px solid rgba(43,29,22,.12);border-radius:var(--radius);padding:30px}
+  .curve-head{margin-bottom:18px}
+  .curve-head .kicker{font-size:.72rem;letter-spacing:.18em;color:var(--amber);font-weight:700}
+  .curve-head h3{font-size:1.25rem;font-weight:800;margin:8px 0 4px}
+  .curve-head p{color:var(--cocoa);font-size:.88rem}
+  .curve-wrap svg{width:100%;height:auto;display:block}
+  .curve-pts circle{fill:var(--espresso);stroke:#fff;stroke-width:2}
+  .curve-line{stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset 2.2s ease .2s}
+  .curve-wrap.show .curve-line{stroke-dashoffset:0}
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+
+<!-- 导航 -->
+<nav class="nav" id="nav">
+  <div class="logo"><span class="bean">☕</span>拾光咖啡</div>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#products">招牌单品</a></li>
+    <li><a href="#about">品牌故事</a></li>
+    <li><a href="#brew">冲煮指南</a></li>
+    <li><a href="#stores">线下门店</a></li>
+    <lI><a href="#reviews">用户评价</a></li>
+    <li><a href="#join">会员计划</a></li>
+  </ul>
+  <div class="nav-actions">
+    <button class="nav-cart" id="cartBtn" aria-label="购物袋">🛒<span class="count" id="cartCount">0</span></button>
+    <button class="nav-cta" onclick="location.href='#join'">立即订阅</button>
+  </div>
+  <button class="menu-btn" id="menuBtn" aria-label="菜单">☰</button>
+</nav>
+
+<!-- Hero -->
+<header class="hero">
+  <div class="hero-inner">
+    <div>
+      <span class="hero-badge"><span class="dot"></span>本季新品 · 云南日晒处理 已上线</span>
+      <h1>把时间<br><span class="grad">泡进一杯好咖啡</span></h1>
+      <p>拾光咖啡精选全球四大产区精品豆，小批量新鲜烘焙，48 小时内送达。每一杯，都值得被认真对待。</p>
+      <div class="hero-btns">
+        <a class="btn-primary" href="#products">探索咖啡</a>
+        <a class="btn-ghost" href="#about">了解我们 →</a>
+      </div>
+      <div class="hero-mini">
+        <div><b>12 万+</b><span>订阅用户</span></div>
+        <div><b>98%</b><span>好评率</span></div>
+        <div><b>4.9 ★</b><span>平均评分</span></div>
+      </div>
+    </div>
+    <div class="hero-art">
+      <div class="cup-wrap" id="cupWrap">
+        <div class="cup">
+          <div class="steam"><span></span><span></span><span></span></div>
+          <div class="coffee"></div>
+        </div>
+        <div class="float-tag tag-1">🔥 本周热销<small>埃塞俄比亚 · 耶加雪菲</small></div>
+        <div class="float-tag tag-2">🚚 48h 新鲜送达<small>北京 / 上海 / 广州</small></div>
+        <div class="float-tag tag-3">🏅 SCA 杯测 88 分<small>2025 年度精品榜</small></div>
+      </div>
+    </div>
+  </div>
+  <div class="scroll-hint"><i>⌄</i>往下滑</div>
+</header>
+
+<!-- 跑马灯 -->
+<div class="marquee">
+  <div class="marquee-track" id="marquee">
+    <span>FRESH ROAST <i>✦</i> 精品咖啡 <i>✦</i> SINGLE ORIGIN <i>✦</i> 小批量烘焙 <i>✦</i> 48H DELIVERY <i>✦</i> 🍂 秋日限定 · 桂花风味 <i>✦</i> 每一杯都是拾光 <i>✦</i></span>
+  </div>
+</div>
+
+<!-- 产品 -->
+<section class="products" id="products">
+  <div class="sec-head reveal">
+    <div class="kicker">Signature</div>
+    <h2>招牌单品</h2>
+    <p>四款经典风味，覆盖从明亮花果香到醇厚黑巧的全光谱。按口味筛选，找到你的那一袋。</p>
+  </div>
+  <div class="filters reveal">
+    <button class="filter-btn active" data-cat="all">全部</button>
+    <button class="filter-btn" data-cat="floral">花果香</button>
+    <button class="filter-btn" data-cat="fermented">发酵甜</button>
+    <button class="filter-btn" data-cat="bold">醇厚</button>
+    <button class="filter-btn" data-cat="domestic">国产限定</button>
+  </div>
+  <div class="grid">
+    <div class="card reveal" data-cat="floral">
+      <div class="emoji">🌸</div>
+      <h3>耶加雪菲 · 水洗</h3>
+      <div class="tags"><span class="tag">埃塞俄比亚</span><span class="tag">水洗</span><span class="tag">海拔 2000m+</span></div>
+      <p>茉莉花香、柠檬与蜂蜜般的甜感，杯体干净优雅，浅焙首选。</p>
+      <div class="flavors">
+        <div class="flavor"><span>酸度</span><div class="bar"><i style="--w:92%"></i></div><em>92</em></div>
+        <div class="flavor"><span>醇厚</span><div class="bar"><i style="--w:45%"></i></div><em>45</em></div>
+        <div class="flavor"><span>甜感</span><div class="bar"><i style="--w:78%"></i></div><em>78</em></div>
+      </div>
+      <div class="roast"><span>烘焙度</span><i class="on"></i><i class="on"></i><i></i><i></i><i></i><em>浅焙</em></div>
+      <div class="card-foot">
+        <div class="price">¥88 <small>/ 200g</small></div>
+        <button class="add-btn" data-name="耶加雪菲 · 水洗">＋ 加入购物袋</button>
+      </div>
+    </div>
+    <div class="card reveal" data-cat="fermented">
+      <span class="corner">实验批次</span>
+      <div class="emoji">🍑</div>
+      <h3>哥伦比亚 · 厌氧</h3>
+      <div class="tags"><span class="tag">慧兰</span><span class="tag">厌氧发酵</span><span class="tag">海拔 1700m</span></div>
+      <p>白桃与莓果的发酵甜香，圆润多汁，厌氧处理实验之作。</p>
+      <div class="flavors">
+        <div class="flavor"><span>酸度</span><div class="bar"><i style="--w:65%"></i></div><em>65</em></div>
+        <div class="flavor"><span>醇厚</span><div class="bar"><i style="--w:70%"></i></div><em>70</em></div>
+        <div class="flavor"><span>甜感</span><div class="bar"><i style="--w:90%"></i></div><em>90</em></div>
+      </div>
+      <div class="roast"><span>烘焙度</span><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><em>中焙</em></div>
+      <div class="card-foot">
+        <div class="price">¥108 <small>/ 200g</small></div>
+        <button class="add-btn" data-name="哥伦比亚 · 厌氧">＋ 加入购物袋</button>
+      </div>
+    </div>
+    <div class="card reveal" data-cat="bold">
+      <div class="emoji">🍫</div>
+      <h3>曼特宁 · 古法</h3>
+      <div class="tags"><span class="tag">苏门答腊</span><span class="tag">湿刨法</span><span class="tag">海拔 1400m</span></div>
+      <p>厚重酒体，黑巧克力与雪松尾韵，适合手冲与意式双场景。</p>
+      <div class="flavors">
+        <div class="flavor"><span>酸度</span><div class="bar"><i style="--w:30%"></i></div><em>30</em></div>
+        <div class="flavor"><span>醇厚</span><div class="bar"><i style="--w:95%"></i></div><em>95</em></div>
+        <div class="flavor"><span>甜感</span><div class="bar"><i style="--w:60%"></i></div><em>60</em></div>
+      </div>
+      <div class="roast"><span>烘焙度</span><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><em>中深焙</em></div>
+      <div class="card-foot">
+        <div class="price">¥92 <small>/ 200g</small></div>
+        <button class="add-btn" data-name="曼特宁 · 古法">＋ 加入购物袋</button>
+      </div>
+    </div>
+    <div class="card reveal" data-cat="domestic">
+      <span class="corner">本季限定</span>
+      <div class="emoji">☀️</div>
+      <h3>云南日晒 · 限定</h3>
+      <div class="tags"><span class="tag">保山</span><span class="tag">日晒</span><span class="tag">共建处理厂</span></div>
+      <p>国产精品之光：红糖、话梅与坚果香，支持高原咖啡农。</p>
+      <div class="stock">本季限量 500 袋 · <b>已售 76%</b>
+        <div class="s-bar"><i style="width:76%"></i></div>
+      </div>
+      <div class="flavors">
+        <div class="flavor"><span>酸度</span><div class="bar"><i style="--w:50%"></i></div><em>50</em></div>
+        <div class="flavor"><span>醇厚</span><div class="bar"><i style="--w:75%"></i></div><em>75</em></div>
+        <div class="flavor"><span>甜感</span><div class="bar"><i style="--w:85%"></i></div><em>85</em></div>
+      </div>
+      <div class="roast"><span>烘焙度</span><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><em>中焙</em></div>
+      <div class="card-foot">
+        <div class="price">¥68 <small>/ 200g</small></div>
+        <button class="add-btn" data-name="云南日晒 · 限定">＋ 加入购物袋</button>
+      </div>
+    </div>
+    <div class="card reveal" data-cat="domestic">
+      <span class="corner">秋日限定 🍂</span>
+      <div class="emoji">🌼</div>
+      <h3>桂花 · 云南 秋</h3>
+      <div class="tags"><span class="tag">保山</span><span class="tag">日晒</span><span class="tag">桂花调香</span></div>
+      <p>秋日限定：桂花与红糖的暖甜，尾韵带一点秋果的辛香，冷萃热冲皆可。</p>
+      <div class="stock">本季限量 300 袋 · <b>已售 34%</b>
+        <div class="s-bar"><i style="width:34%"></i></div>
+      </div>
+      <div class="flavors">
+        <div class="flavor"><span>酸度</span><div class="bar"><i style="--w:45%"></i></div><em>45</em></div>
+        <div class="flavor"><span>醇厚</span><div class="bar"><i style="--w:70%"></i></div><em>70</em></div>
+        <div class="flavor"><span>甜感</span><div class="bar"><i style="--w:88%"></i></div><em>88</em></div>
+      </div>
+      <div class="roast"><span>烘焙度</span><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><em>中焙</em></div>
+      <div class="card-foot">
+        <div class="price">¥78 <small>/ 200g</small></div>
+        <button class="add-btn" data-name="桂花 · 云南 秋">＋ 加入购物袋</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 烘焙批次倒计时 -->
+<section style="padding-top:0;padding-bottom:0">
+  <div class="batch reveal">
+    <div>
+      <small>本批次 · #2025-28 · 云南日晒</small>
+      <b>距下次烘焙开炉</b>
+      <span class="sub">12kg 小批量 · 烘焙曲线随袋附上 · 开炉后 48h 内发货</span>
+    </div>
+    <div class="countdown">
+      <div class="count-box"><b id="cdD">02</b><span>天</span></div>
+      <div class="count-box"><b id="cdH">14</b><span>时</span></div>
+      <div class="count-box"><b id="cdM">26</b><span>分</span></div>
+      <div class="count-box"><b id="cdS">40</b><span>秒</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 品牌故事 -->
+<section id="about">
+  <div class="sec-head reveal">
+    <div class="kicker">Our Story</div>
+    <h2>从一颗生豆开始</h2>
+    <p>好咖啡不该只是「提神」，更是一段可以被看见的旅程。</p>
+  </div>
+  <div class="story-grid">
+    <div class="story-visual reveal">
+      <div class="tile t1">🌱</div>
+      <div class="tile t2">🔥</div>
+      <div class="tile t3">📦</div>
+      <div class="tile t4">☕</div>
+    </div>
+    <div class="story-text reveal">
+      <h3>把每一杯的来路，<br>明明白白写清楚</h3>
+      <p>拾光始于 2019 年冬天的一台 12kg 烘焙机。第一炉耶加雪菲出炉那天，来试喝的朋友集体下了单——我们意识到，大家缺的从来不是咖啡，而是「知道这杯咖啡从哪来」的那份确定感。</p>
+      <p>所以每一袋拾光的包装上，都印着烘焙曲线、处理法和庄园名字；扫码还能看到这支豆子的杯测报告。透明，是我们的基本礼貌。</p>
+      <ul class="story-points">
+        <li>✅ 产地直采，拒绝中间商</li>
+        <li>✅ 杯测 84+ 分才上架</li>
+        <li>✅ 咖啡农溢价 30% 收购</li>
+        <li>✅ 烘焙后 48h 内发货</li>
+      </ul>
+    </div>
+  </div>
+  <div class="timeline reveal">
+    <div class="tl-item"><small>2019</small><b>第一炉</b><p>上海，第一炉耶加雪菲出炉，从 20 个朋友订单开始。</p></div>
+    <div class="tl-item"><small>2020</small><b>产地直采</b><p>首次飞赴埃塞俄比亚，与 3 家合作社签订直采协议。</p></div>
+    <div class="tl-item"><small>2022</small><b>十万杯</b><p>累计烘焙突破 10 万杯，订阅用户超过 3 万。</p></div>
+    <div class="tl-item"><small>2024</small><b>云南直采</b><p>走进保山高黎贡山，与当地咖啡农共建日晒处理厂。</p></div>
+    <div class="tl-item"><small>2025</small><b>拾光计划</b><p>订阅用户突破 12 万，合作庄园增至 128 家。</p></div>
+  </div>
+  <div class="stats-wrap">
+    <div class="stats reveal">
+      <div class="stats-grid">
+        <div class="stat"><b data-target="128">0</b><span>合作庄园</span></div>
+        <div class="stat"><b data-target="36">0</b><span>万杯已烘焙</span></div>
+        <div class="stat"><b data-target="98">0</b><span>% 好评率</span></div>
+        <div class="stat"><b data-target="48">0</b><span>小时新鲜送达</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 产区直采 -->
+<section class="origins" id="origins">
+  <div class="sec-head reveal">
+    <div class="kicker">Origins</div>
+    <h2>四大产区直采</h2>
+    <p>从高原到海岸，每一颗生豆都有可溯源的来路。</p>
+  </div>
+  <div class="map-wrap reveal">
+    <svg viewBox="0 0 800 400" role="img" aria-label="四大产区简化地图">
+      <rect class="map-sea" x="0" y="0" width="800" height="400" rx="18"/>
+      <path class="map-land" d="M120,150 C105,120 115,85 150,70 C190,52 235,60 245,90 C252,115 235,135 220,150 C205,168 185,180 165,175 C145,172 130,165 120,150 Z"/>
+      <path class="map-land" d="M215,205 C240,195 265,205 272,225 C280,250 270,285 255,310 C245,328 230,332 222,315 C210,290 202,250 205,230 C207,218 210,208 215,205 Z"/>
+      <path class="map-land" d="M470,105 C480,88 505,80 525,88 C540,95 545,112 535,125 C522,140 495,142 482,132 C472,124 466,115 470,105 Z"/>
+      <path class="map-land" d="M470,120 C500,105 540,110 555,135 C575,165 570,200 555,230 C540,262 520,285 505,275 C485,262 470,230 462,200 C455,170 455,138 470,120 Z"/>
+      <path class="map-land" d="M560,140 C580,90 640,65 700,75 C750,83 775,110 770,140 C765,165 740,175 720,190 C700,205 670,215 650,205 C630,215 610,210 600,195 C580,185 555,165 560,140 Z"/>
+      <path class="map-land" d="M695,270 C710,258 735,258 748,270 C758,280 755,295 742,302 C728,310 708,308 700,296 C693,286 690,278 695,270 Z"/>
+      <g>
+        <circle class="map-ring" cx="489" cy="182" r="10"/>
+        <circle class="map-dot" cx="489" cy="182" r="5"/>
+        <text class="map-label" x="489" y="165" text-anchor="middle">埃塞俄比亚 · 耶加雪菲</text>
+      </g>
+      <g>
+        <circle class="map-ring" cx="232" cy="202" r="10" style="animation-delay:.5s"/>
+        <circle class="map-dot" cx="232" cy="202" r="5"/>
+        <text class="map-label" x="232" y="240" text-anchor="middle">哥伦比亚 · 慧兰</text>
+      </g>
+      <g>
+        <circle class="map-ring" cx="628" cy="200" r="10" style="animation-delay:1s"/>
+        <circle class="map-dot" cx="628" cy="200" r="5"/>
+        <text class="map-label" x="628" y="228" text-anchor="middle">印度尼西亚 · 苏门答腊</text>
+      </g>
+      <g>
+        <circle class="map-ring" cx="618" cy="146" r="10" style="animation-delay:1.5s"/>
+        <circle class="map-dot" cx="618" cy="146" r="5"/>
+        <text class="map-label" x="618" y="130" text-anchor="middle">中国 · 云南保山</text>
+      </g>
+    </svg>
+    <div class="map-legend">
+      <span><i></i>埃塞俄比亚 · 海拔 1800–2200m</span>
+      <span><i></i>哥伦比亚 · 海拔 1500–1900m</span>
+      <span><i></i>印度尼西亚 · 海拔 1100–1500m</span>
+      <span><i></i>中国云南 · 海拔 1200–1600m</span>
+    </div>
+  </div>
+  <div class="grid">
+    <div class="origin-card reveal">
+      <span class="flag">🇪🇹</span>
+      <h3>埃塞俄比亚 · 耶加雪菲</h3>
+      <div class="region">咖啡发源地</div>
+      <div class="o-meta">
+        <div><span>海拔</span><b>1800–2200m</b></div>
+        <div><span>处理法</span><b>水洗</b></div>
+        <div><span>风味</span><b>茉莉 / 柠檬 / 蜂蜜</b></div>
+        <div><span>合作</span><b>2 家合作社直采</b></div>
+      </div>
+    </div>
+    <div class="origin-card reveal">
+      <span class="flag">🇨🇴</span>
+      <h3>哥伦比亚 · 慧兰</h3>
+      <div class="region">安第斯山麓</div>
+      <div class="o-meta">
+        <div><span>海拔</span><b>1500–1900m</b></div>
+        <div><span>处理法</span><b>厌氧发酵</b></div>
+        <div><span>风味</span><b>白桃 / 莓果 / 焦糖</b></div>
+        <div><span>合作</span><b>4 家家庭农场</b></div>
+      </div>
+    </div>
+    <div class="origin-card reveal">
+      <span class="flag">🇮🇩</span>
+      <h3>印度尼西亚 · 苏门答腊</h3>
+      <div class="region">火山土壤产区</div>
+      <div class="o-meta">
+        <div><span>海拔</span><b>1100–1500m</b></div>
+        <div><span>处理法</span><b>湿刨法（古法）</b></div>
+        <div><span>风味</span><b>黑巧 / 雪松 / 香料</b></div>
+        <div><span>合作</span><b>3 家种植园</b></div>
+      </div>
+    </div>
+    <div class="origin-card reveal">
+      <span class="flag">🇨🇳</span>
+      <h3>中国 · 云南保山</h3>
+      <div class="region">高黎贡山南麓</div>
+      <div class="o-meta">
+        <div><span>海拔</span><b>1200–1600m</b></div>
+        <div><span>处理法</span><b>日晒</b></div>
+        <div><span>风味</span><b>红糖 / 话梅 / 坚果</b></div>
+        <div><span>合作</span><b>共建日晒处理厂</b></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 烘焙流程 -->
+<section id="process">
+  <div class="sec-head reveal">
+    <div class="kicker">Process</div>
+    <h2>从庄园到你手中</h2>
+    <p>四个环节，每一步都不走捷径。</p>
+  </div>
+  <div class="steps reveal">
+    <div class="step"><div class="num">🌱</div><h3><small>STEP 01</small>产地直采</h3><p>与 128 家庄园签直采协议，杯测 84+ 分才下单，溢价 30% 付给咖啡农。</p></div>
+    <div class="step"><div class="num">🔍</div><h3><small>STEP 02</small>生豆筛选</h3><p>到厂逐批筛豆、测含水率，剔除瑕疵豆，按密度分级储存。</p></div>
+    <div class="step"><div class="num">🔥</div><h3><small>STEP 03</small>小批量烘焙</h3><p>12kg 滚筒机，每炉不超过 12 公斤，烘焙曲线随袋附上。</p></div>
+    <div class="step"><div class="num">🚚</div><h3><small>STEP 04</small>48h 送达</h3><p>烘焙后 24h 内充氮锁鲜，48h 寄出，到家正好养豆完成。</p></div>
+  </div>
+  <!-- 烘焙曲线 -->
+  <div class="curve-wrap reveal">
+    <div class="curve-head">
+      <div class="kicker">Roast Curve</div>
+      <h3>本炉烘焙曲线（结构示意）</h3>
+      <p>每一袋都随附当炉实测曲线与关键节点时间戳，下图仅为结构示意。</p>
+    </div>
+    <svg viewBox="0 0 640 260" role="img" aria-label="烘焙曲线结构示意">
+      <defs>
+        <linearGradient id="curveFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="rgba(201,123,61,.35)"/>
+          <stop offset="1" stop-color="rgba(201,123,61,.02)"/>
+        </linearGradient>
+      </defs>
+      <g stroke="rgba(43,29,22,.08)" stroke-width="1">
+        <line x1="60"  y1="40"  x2="60"  y2="220"/>
+        <line x1="60"  y1="220" x2="600" y2="220"/>
+        <line x1="60"  y1="130" x2="600" y2="130" stroke-dasharray="3 5"/>
+        <line x1="200" y1="40"  x2="200" y2="220" stroke-dasharray="3 5"/>
+        <line x1="360" y1="40"  x2="360" y2="220" stroke-dasharray="3 5"/>
+        <line x1="520" y1="40"  x2="520" y2="220" stroke-dasharray="3 5"/>
+      </g>
+      <path d="M60,200 C160,190 240,150 340,110 C420,80 520,60 600,52 L600,220 L60,220 Z"
+            fill="url(#curveFill)"/>
+      <path class="curve-line" pathLength="1"
+            d="M60,200 C160,190 240,150 340,110 C420,80 520,60 600,52"
+            fill="none" stroke="var(--amber)" stroke-width="3" stroke-linecap="round"/>
+      <g class="curve-pts">
+        <circle cx="60"  cy="200" r="5"/>
+        <circle cx="340" cy="110" r="5"/>
+        <circle cx="520" cy="60"  r="5"/>
+        <circle cx="600" cy="52"  r="6"/>
+      </g>
+      <g font-size="11" font-weight="700">
+        <text x="66"  y="190" text-anchor="start"   fill="var(--cocoa)">入豆</text>
+        <text x="340" y="100" text-anchor="middle" fill="var(--cocoa)">一爆</text>
+        <text x="520" y="50"  text-anchor="middle" fill="var(--cocoa)">二爆</text>
+        <text x="594" y="42"  text-anchor="middle" fill="var(--espresso)">出炉</text>
+      </g>
+      <g font-size="10" fill="#9b8a78">
+        <text x="20"  y="135" text-anchor="middle" transform="rotate(-90 20 135)">温度 (℃)</text>
+        <text x="330" y="245" text-anchor="middle">时间 (min)</text>
+      </g>
+    </svg>
+  </div>
+</section>
+
+<!-- 冲煮指南 -->
+<section class="origins" id="brew">
+  <div class="sec-head reveal">
+    <div class="kicker">Brew Guide</div>
+    <h2>冲煮指南</h2>
+    <p>三种经典冲法，照着参数做，就能冲出接近杯测级的风味。</p>
+  </div>
+  <div class="brew-grid">
+    <div class="brew-card reveal">
+      <div class="icon">⏳</div>
+      <h3>V60 手冲</h3>
+      <div class="ratio"><b>1 : 15</b><div class="r-bar"><i style="width:6.2%"></i></div></div>
+      <div class="specs">
+        <div class="spec"><b>15g</b>粉量</div>
+        <div class="spec"><b>225ml</b>水量</div>
+        <div class="spec"><b>92℃</b>水温</div>
+        <div class="spec"><b>2:30</b>总时长</div>
+      </div>
+      <ol class="brew-steps">
+        <li>研磨中细砂糖颗粒度，润湿滤纸</li>
+        <li>注水 30ml 闷蒸 30 秒</li>
+        <li>螺旋注水至 225ml，1:30 前完成</li>
+        <li>轻微晃杯，让粉层平整后出液</li>
+      </ol>
+    </div>
+    <div class="brew-card reveal">
+      <div class="icon">⚡</div>
+      <h3>意式浓缩</h3>
+      <div class="ratio"><b>1 : 2</b><div class="r-bar"><i style="width:33%"></i></div></div>
+      <div class="specs">
+        <div class="spec"><b>18g</b>粉量</div>
+        <div class="spec"><b>36g</b>液重</div>
+        <div class="spec"><b>93℃</b>水温</div>
+        <div class="spec"><b>27s</b>萃取时长</div>
+      </div>
+      <ol class="brew-steps">
+        <li>研磨细砂糖偏细，布粉压粉均匀</li>
+        <li>预浸泡 3–5s，观察是否均匀渗水</li>
+        <li>总萃取 25–30s，液面呈蜂蜜状</li>
+        <li>偏酸延长时长，偏苦则调短</li>
+      </ol>
+    </div>
+    <div class="brew-card reveal">
+      <div class="icon">🧊</div>
+      <h3>冰滴冷萃</h3>
+      <div class="ratio"><b>1 : 8</b><div class="r-bar"><i style="width:11%"></i></div></div>
+      <div class="specs">
+        <div class="spec"><b>30g</b>粉量</div>
+        <div class="spec"><b>240ml</b>水量</div>
+        <div class="spec"><b>常温</b>浸泡</div>
+        <div class="spec"><b>12h</b>时长</div>
+      </div>
+      <ol class="brew-steps">
+        <li>粗研磨，冰水 1:8 混合</li>
+        <li>密封冷藏，每 4 小时轻搅一次</li>
+        <li>12 小时后滤纸过滤</li>
+        <li>加冰直饮，或 1:1 兑牛奶</li>
+      </ol>
+    </div>
+  </div>
+  <!-- 冲煮比例计算器 -->
+  <div class="ratios reveal" style="margin-top:26px">
+    <div class="ratios-head">
+      <div class="kicker">Brew Calculator</div>
+      <h3>冲煮比例计算器</h3>
+      <p>选定冲法与比例，按粉量实时换算液量、水温与研磨建议。</p>
+    </div>
+    <div class="ratios-row">
+      <label>冲法
+        <span class="r-chips" id="rMethods">
+          <button class="r-chip active" data-m="v60">手冲</button>
+          <button class="r-chip" data-m="espresso">意式</button>
+          <button class="r-chip" data-m="cold">冷萃</button>
+        </span>
+      </label>
+      <label>粉量（g）
+        <input type="number" id="rDose" min="1" max="80" step="1" value="15" aria-label="粉量克数">
+      </label>
+      <label>比例
+        <span class="r-chips" id="rRatios">
+          <button class="r-chip" data-r="2">1:2</button>
+          <button class="r-chip" data-r="8">1:8</button>
+          <button class="r-chip active" data-r="15">1:15</button>
+          <button class="r-chip" data-r="16">1:16</button>
+          <button class="r-chip" data-r="17">1:17</button>
+        </span>
+      </label>
+    </div>
+    <div class="ratio-out">
+      <div><span>液量 / 水量</span><b id="rWater">225 ml</b></div>
+      <div><span>建议水温</span><b id="rTemp">90–94℃</b></div>
+      <div><span>研磨</span><b id="rGrind">中细砂糖颗粒度</b></div>
+      <div><span>参考时长</span><b id="rTime">2:00–3:00</b></div>
+    </div>
+    <p class="ratio-hint" id="rHint">💡 手冲偏酸可延长时长或调粗研磨，偏苦则反向调整。</p>
+  </div>
+  <div class="timer reveal" id="brewTimer" style="margin-top:26px">
+    <div class="t-presets">
+      <button class="t-preset active" data-t="v60">V60 手冲</button>
+      <button class="t-preset" data-t="espresso">意式浓缩</button>
+      <button class="t-preset" data-t="cold">冷萃（演示版）</button>
+    </div>
+    <div class="t-ring" id="tRing"><div class="t-time" id="tTime">02:30</div></div>
+    <div class="t-step" id="tStep">选择配方后点「开始」，跟着提示冲一杯</div>
+    <div class="t-controls">
+      <button class="t-btn go" id="tGo">▶ 开始冲煮</button>
+      <button class="t-btn ghost" id="tReset">重置</button>
+    </div>
+  </div>
+</section>
+
+<!-- 会员计划 + CTA -->
+<section id="join">
+  <div class="sec-head reveal">
+    <div class="kicker">Membership</div>
+    <h2>会员计划</h2>
+    <p>从一袋尝鲜到全年黑卡，总有一种适合你的喝法。</p>
+  </div>
+  <div class="plans-grid">
+    <div class="plan reveal">
+      <h3>尝鲜装</h3>
+      <div class="p-desc">先试一杯，再决定</div>
+      <div class="p-price">¥59 <small>/ 200g</small></div>
+      <ul>
+        <li>四款招牌任意选</li>
+        <li>新人立减 10 元</li>
+        <li>无任何订阅义务</li>
+        <li>附冲煮参数卡</li>
+      </ul>
+      <button class="p-btn ghost" data-plan="trial">立即选购</button>
+    </div>
+    <div class="plan featured reveal">
+      <span class="badge">🔥 最受欢迎</span>
+      <h3>月度订阅</h3>
+      <div class="p-desc">每月两袋新鲜烘焙</div>
+      <div class="p-price">¥158 <small>/ 月 · 2 袋</small></div>
+      <ul>
+        <li>首单立享 8 折</li>
+        <li>每月换豆 / 换烘焙度</li>
+        <li>新品优先尝鲜</li>
+        <li>随时暂停或取消</li>
+      </ul>
+      <button class="p-btn" data-plan="monthly">🎁 领取 8 折券</button>
+    </div>
+    <div class="plan reveal">
+      <h3>年度黑卡</h3>
+      <div class="p-desc">全年咖啡自由</div>
+      <div class="p-price">¥1680 <small>/ 年 · 24 袋</small></div>
+      <ul>
+        <li>全年 24 袋新鲜烘焙</li>
+        <li>限定豆优先购买权</li>
+        <li>赠手冲壶 + 滤杯套装</li>
+        <li>专属烘焙顾问</li>
+      </ul>
+      <button class="p-btn ghost" data-plan="annual">咨询黑卡</button>
+    </div>
+  </div>
+  <div class="cta-box reveal">
+    <h2>加入「拾光计划」</h2>
+    <p>每月两袋新鲜烘焙豆寄到家中，首单立享 8 折，随时可暂停或取消。</p>
+    <div>
+      <input type="email" id="email" placeholder="输入你的邮箱，领取新人优惠券">
+    </div>
+    <button class="btn-primary" id="joinBtn">🎁 领取 8 折券</button>
+    <p id="joinTip" style="margin-top:16px;opacity:0;transition:opacity .4s"></p>
+  </div>
+</section>
+
+<!-- 礼品卡 -->
+<section class="gift" id="gift">
+  <div class="gift-grid">
+    <div class="gift-card-visual reveal">
+      <div class="gc-top">
+        <div class="gc-brand">☕ SHIGUANG COFFEE</div>
+        <div class="gc-chip"></div>
+      </div>
+      <div class="gc-amount">¥<span id="giftAmount">100</span> <small>礼品卡 · GIFT CARD</small></div>
+      <div class="gc-bottom">
+        <span>拾光 · 把时间送出去</span>
+        <span>有效期 12 个月</span>
+      </div>
+    </div>
+    <div class="gift-text reveal">
+      <h3>把一杯时间，送给重要的人</h3>
+      <p>礼品卡是最体面的「咖啡邀约」。选择面额、发送出去，对方可以兑换任意招牌单品或订阅计划，附一张手写风格的祝福卡。</p>
+      <div class="gift-options">
+        <button class="gift-opt" data-amt="50">¥50</button>
+        <button class="gift-opt active" data-amt="100">¥100</button>
+        <button class="gift-opt" data-amt="200">¥200</button>
+        <button class="gift-opt" data-amt="500">¥500</button>
+      </div>
+      <button class="btn-primary" id="giftBtn" style="border-radius:999px">🎁 领取礼品卡</button>
+    </div>
+  </div>
+</section>
+
+<!-- 线下门店 -->
+<section class="origins" id="stores">
+  <div class="sec-head reveal">
+    <div class="kicker">Stores</div>
+    <h2>线下门店</h2>
+    <p>来店里喝一杯当季新品，或带走一袋新鲜烘焙。</p>
+  </div>
+  <div class="grid">
+    <div class="origin-card reveal">
+      <span class="flag">🏙️</span>
+      <h3>上海 · 旗舰体验店</h3>
+      <div class="region">漕溪北路 88 号 2F</div>
+      <div class="o-meta">
+        <div><span>营业</span><b>周一至周日 8:00–20:00</b></div>
+        <div><span>电话</span><b>400-820-2025</b></div>
+        <div><span>服务</span><b>有插座 · 宠物友好</b></div>
+        <div><span>特色</span><b>杯测开放日 · 每周六</b></div>
+      </div>
+    </div>
+    <div class="origin-card reveal">
+      <span class="flag">🛍️</span>
+      <h3>上海 · 静安快闪</h3>
+      <div class="region">南京西路 1266 号</div>
+      <div class="o-meta">
+        <div><span>营业</span><b>周一至周日 10:00–22:00</b></div>
+        <div><span>电话</span><b>021-6288-2025</b></div>
+        <div><span>服务</span><b>外卖可取 · 会员优先</b></div>
+        <div><span>特色</span><b>当季限定首发</b></div>
+      </div>
+    </div>
+    <div class="origin-card reveal">
+      <span class="flag">⛰️</span>
+      <h3>昆明 · 庄园体验</h3>
+      <div class="region">保山市隆阳区</div>
+      <div class="o-meta">
+        <div><span>营业</span><b>周五至周日 9:00–18:00</b></div>
+        <div><span>预约</span><b>需提前 3 天</b></div>
+        <div><span>服务</span><b>庄园直采 · 咖啡农共饮</b></div>
+        <div><span>特色</span><b>日晒处理厂参观</b></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 评价 -->
+<section id="reviews">
+  <div class="sec-head reveal">
+    <div class="kicker">Reviews</div>
+    <h2>用户怎么说</h2>
+    <p>来自 12 万+ 订阅用户的真实反馈。</p>
+  </div>
+  <div class="quotes-slider reveal">
+    <button class="quotes-arrow prev" id="qPrev" aria-label="上一条评价">‹</button>
+    <div class="quotes-view">
+      <div class="quotes-track" id="quotesTrack">
+        <div class="quote">
+          <p>收到豆子当天就冲了，耶加雪菲的花香太惊艳了，包装也高级，送人完全拿得出手。</p>
+          <div class="who">
+            <div class="avatar">林</div>
+            <div><b>林小满</b><small>订阅 2 年 · 上海</small><br><span class="stars">★★★★★</span></div>
+          </div>
+        </div>
+        <div class="quote">
+          <p>作为独立咖啡馆店主，我把「曼特宁」做成了店里的常驻菜单，顾客回头率非常高。</p>
+          <div class="who">
+            <div class="avatar">陈</div>
+            <div><b>陈一鸣</b><small>B端客户 · 成都</small><br><span class="stars">★★★★★</span></div>
+          </div>
+        </div>
+        <div class="quote">
+          <p>最打动我的是烘焙曲线会写在包装上，还能查到庄园名字。这种透明感很难得。</p>
+          <div class="who">
+            <div class="avatar">周</div>
+            <div><b>周予安</b><small>订阅 8 个月 · 深圳</small><br><span class="stars">★★★★☆</span></div>
+          </div>
+        </div>
+        <div class="quote">
+          <p>给妈妈生日买了 ¥200 礼品卡，她不太喝咖啡，但天天冲冷萃发朋友圈，值了。</p>
+          <div class="who">
+            <div class="avatar">苏</div>
+            <div><b>苏晚晴</b><small>礼品卡用户 · 杭州</small><br><span class="stars">★★★★★</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <button class="quotes-arrow next" id="qNext" aria-label="下一条评价">›</button>
+    <div class="quotes-dots" id="qDots"></div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq" style="padding-top:40px">
+  <div class="sec-head reveal">
+    <div class="kicker">FAQ</div>
+    <h2>常见问题</h2>
+    <p>下单前，你可能想先知道这些。</p>
+  </div>
+  <div class="faq">
+    <div class="faq-item reveal">
+      <button class="faq-q">豆子有多新鲜？<span class="pm">＋</span></button>
+      <div class="faq-a"><p>每袋包装上都印有烘焙日期，开炉后 48 小时内发出。最佳赏味期是烘焙后 7–30 天，建议在这个窗口内喝完。</p></div>
+    </div>
+    <div class="faq-item reveal">
+      <button class="faq-q">可以指定烘焙度或调整订阅频率吗？<span class="pm">＋</span></button>
+      <div class="faq-a"><p>可以。订阅用户每月都能更换豆子与烘焙度，也可以一键暂停、跳过某期或取消订阅，不设任何门槛。</p></div>
+    </div>
+    <div class="faq-item reveal">
+      <button class="faq-q">收到豆子有瑕疵怎么办？<span class="pm">＋</span></button>
+      <div class="faq-a"><p>签收后 48 小时内拍照联系客服，无条件补发或退款，运费我们承担。</p></div>
+    </div>
+    <div class="faq-item reveal">
+      <button class="faq-q">配送范围和时效是怎样的？<span class="pm">＋</span></button>
+      <div class="faq-a"><p>全国主要城市 48 小时送达，偏远地区 72 小时。满 99 元包邮，支持顺丰 / 京东物流。</p></div>
+    </div>
+    <div class="faq-item reveal">
+      <button class="faq-q">可以开发票吗？<span class="pm">＋</span></button>
+      <div class="faq-a"><p>支持电子普票与专票，在订单页即可自助开具，一般 1 个工作日内开出。</p></div>
+    </div>
+    <div class="faq-item reveal">
+      <button class="faq-q">有线下门店吗？<span class="pm">＋</span></button>
+      <div class="faq-a"><p>上海徐汇区有 1 家旗舰体验店（漕溪北路 88 号 2F），欢迎预约来喝一杯当季新品。</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 页脚 -->
+<footer>
+  <div class="foot-grid">
+    <div class="foot-brand">
+      <div class="logo"><span class="bean">☕</span>拾光咖啡</div>
+      <p>把时间泡进一杯好咖啡。精品豆 · 小批量 · 48 小时新鲜送达。</p>
+      <div class="socials">
+        <a href="#">微信公众号</a><a href="#">小红书</a><a href="#">微博</a><a href="#">抖音</a>
+      </div>
+    </div>
+    <div>
+      <h4>产品</h4>
+      <ul>
+        <li><a href="#products">招牌单品</a></li>
+        <li><a href="#join">订阅计划</a></li>
+        <li><a href="#gift">礼品卡</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>关于</h4>
+      <ul>
+        <li><a href="#about">品牌故事</a></li>
+        <li><a href="#origins">产区直采</a></li>
+        <li><a href="#stores">线下门店</a></li>
+        <li><a href="#">加入我们</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>帮助</h4>
+      <ul>
+        <li><a href="#brew">冲煮指南</a></li>
+        <li><a href="#faq">常见问题</a></li>
+        <li><a href="#">联系客服</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>联系</h4>
+      <ul class="foot-contact">
+        <li>📍 上海市徐汇区漕溪北路 88 号 2F</li>
+        <li>📞 400-820-2025</li>
+        <li>✉️ hi@shiguang.coffee</li>
+        <li>🕗 周一至周日 8:00–20:00</li>
+      </ul>
+    </div>
+  </div>
+  <div class="copyright">© 2025 拾光咖啡 SHIGUANG COFFEE · 一个由 AI 随手设计的演示页面 ☕</div>
+</footer>
+
+<!-- 购物袋抽屉 -->
+<div class="cart-overlay" id="cartOverlay"></div>
+<aside class="cart-drawer" id="cartDrawer" aria-label="购物袋" aria-hidden="true">
+  <div class="cart-head">
+    <h3>🛒 购物袋 <small id="cartHeadCount" style="color:#9b8a78;font-weight:400;font-size:.85rem"></small></h3>
+    <button class="close" id="cartClose" aria-label="关闭购物袋">✕</button>
+  </div>
+  <div class="cart-body" id="cartItems"></div>
+  <div class="cart-foot">
+    <div class="cart-sub">
+      <span>小计（满 ¥99 包邮）</span>
+      <b>¥<span id="cartTotal">0</span><em></em></b>
+    </div>
+    <button class="cart-checkout" id="cartCheckout">去结算</button>
+  </div>
+</aside>
+
+<button class="to-top" id="toTop" aria-label="回到顶部">↑</button>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+  // 导航滚动态 + 进度条 + 回顶按钮
+  const nav = document.getElementById('nav');
+  const progress = document.getElementById('progress');
+  const toTop = document.getElementById('toTop');
+  addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', scrollY > 40);
+    const doc = document.documentElement;
+    progress.style.width = (scrollY / (doc.scrollHeight - innerHeight) * 100) + '%';
+    toTop.classList.toggle('show', scrollY > 600);
+  });
+  toTop.onclick = () => scrollTo({ top: 0, behavior: 'smooth' });
+
+  // 移动端菜单
+  const menuBtn = document.getElementById('menuBtn');
+  const navLinks = document.getElementById('navLinks');
+  menuBtn.onclick = () => navLinks.classList.toggle('open');
+  navLinks.querySelectorAll('a').forEach(a => a.onclick = () => navLinks.classList.remove('open'));
+
+  // 跑马灯内容补齐（保证无缝滚动）
+  const track = document.getElementById('marquee');
+  track.innerHTML = track.innerHTML.repeat(2);
+
+  // 滚动显现
+  const io = new IntersectionObserver(es => es.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('show'); io.unobserve(e.target); }
+  }), { threshold: .15 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  // 数字滚动
+  const statIO = new IntersectionObserver(es => es.forEach(e => {
+    if (!e.isIntersecting) return;
+    statIO.unobserve(e.target);
+    const el = e.target, target = +el.dataset.target;
+    const t0 = performance.now(), dur = 1600;
+    (function tick(t){
+      const p = Math.min((t - t0) / dur, 1);
+      el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3)));
+      if (p < 1) requestAnimationFrame(tick);
+    })(t0);
+  }), { threshold: .5 });
+  document.querySelectorAll('.stat b').forEach(el => statIO.observe(el));
+
+  // Hero 咖啡杯视差
+  const cup = document.getElementById('cupWrap');
+  document.querySelector('.hero').addEventListener('mousemove', e => {
+    const x = (e.clientX / innerWidth - .5) * 14;
+    const y = (e.clientY / innerHeight - .5) * 14;
+    cup.style.transform = `rotateY(${x}deg) rotateX(${-y}deg)`;
+  });
+
+  // 导航高亮当前区块
+  const navA = [...document.querySelectorAll('.nav-links a')];
+  const secIO = new IntersectionObserver(es => es.forEach(e => {
+    if (!e.isIntersecting) return;
+    navA.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id));
+  }), { rootMargin: '-40% 0px -55% 0px' });
+  document.querySelectorAll('section[id]').forEach(s => secIO.observe(s));
+
+  // Toast 提示
+  const toast = document.getElementById('toast');
+  let toastTimer;
+  const showToast = msg => {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 2400);
+  };
+
+  // 购物袋（抽屉）
+  const cart = new Map(); // name -> {name, price, emoji, qty}
+  const cartCountEl = document.getElementById('cartCount');
+  const cartHeadCount = document.getElementById('cartHeadCount');
+  const drawer = document.getElementById('cartDrawer');
+  const overlay = document.getElementById('cartOverlay');
+  const itemsEl = document.getElementById('cartItems');
+  const totalEl = document.getElementById('cartTotal');
+  const FREE_SHIP = 99;
+
+  const cartQty = () => [...cart.values()].reduce((s, i) => s + i.qty, 0);
+  const cartSum = () => [...cart.values()].reduce((s, i) => s + i.qty * i.price, 0);
+
+  function renderCart() {
+    const qty = cartQty(), sum = cartSum();
+    cartCountEl.textContent = qty;
+    cartHeadCount.textContent = qty ? '（' + qty + ' 件）' : '';
+    totalEl.textContent = sum;
+    document.querySelector('.cart-sub span').textContent =
+      sum >= FREE_SHIP ? '小计 · 已免运费 🎉' : '小计（满 ¥' + FREE_SHIP + ' 包邮，还差 ¥' + (FREE_SHIP - sum) + '）';
+    if (cart.size === 0) {
+      itemsEl.innerHTML = '<div class="cart-empty"><i>🛒</i>购物袋还是空的<br>去挑一袋喜欢的豆子吧～</div>';
+      return;
+    }
+    itemsEl.innerHTML = [...cart.values()].map(i =>
+      '<div class="cart-item" data-name="' + i.name + '">' +
+      '<div class="ci-icon">' + i.emoji + '</div>' +
+      '<div class="ci-info"><b>' + i.name + '</b><small>200g · 新鲜烘焙</small></div>' +
+      '<div class="ci-qty"><button data-act="dec" aria-label="减少数量">−</button><b>' + i.qty + '</b><button data-act="inc" aria-label="增加数量">＋</button></div>' +
+      '<div class="ci-price">¥' + (i.price * i.qty) + '</div></div>'
+    ).join('');
+  }
+  renderCart();
+
+  document.querySelectorAll('.add-btn').forEach(btn => btn.onclick = () => {
+    const card = btn.closest('.card');
+    const m = card.querySelector('.price').textContent.match(/¥\s*(\d+)/);
+    const price = m ? +m[1] : 88;
+    const emojiEl = card.querySelector('.emoji');
+    const name = btn.dataset.name;
+    const it = cart.get(name) || { name, price, emoji: emojiEl ? emojiEl.textContent.trim() : '☕', qty: 0 };
+    it.qty++;
+    cart.set(name, it);
+    renderCart();
+    cartCountEl.classList.remove('bump');
+    void cartCountEl.offsetWidth;
+    cartCountEl.classList.add('bump');
+    showToast('🛒 已加入购物袋：' + name);
+  });
+
+  const openCart = () => { drawer.classList.add('show'); overlay.classList.add('show'); drawer.setAttribute('aria-hidden', 'false'); };
+  const closeCart = () => { drawer.classList.remove('show'); overlay.classList.remove('show'); drawer.setAttribute('aria-hidden', 'true'); };
+  document.getElementById('cartBtn').onclick = openCart;
+  document.getElementById('cartClose').onclick = closeCart;
+  overlay.onclick = closeCart;
+  addEventListener('keydown', e => { if (e.key === 'Escape') closeCart(); });
+
+  itemsEl.addEventListener('click', e => {
+    const b = e.target.closest('button[data-act]');
+    if (!b) return;
+    const it = cart.get(b.closest('.cart-item').dataset.name);
+    if (b.dataset.act === 'inc') it.qty++;
+    else { it.qty--; if (it.qty <= 0) cart.delete(it.name); }
+    renderCart();
+  });
+
+  document.getElementById('cartCheckout').onclick = () => {
+    if (cart.size === 0) { showToast('购物袋还是空的，去挑一款吧～'); return; }
+    const sum = cartSum();
+    showToast('✅ 下单成功（演示）· 合计 ¥' + sum + '，48h 内发出');
+    cart.clear();
+    renderCart();
+    setTimeout(closeCart, 800);
+  };
+
+  // 产品筛选
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  filterBtns.forEach(btn => btn.onclick = () => {
+    filterBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const cat = btn.dataset.cat;
+    document.querySelectorAll('#products .card').forEach(card => {
+      card.classList.toggle('hide', cat !== 'all' && card.dataset.cat !== cat);
+    });
+  });
+
+  // 烘焙开炉倒计时
+  let roastTarget = Date.now() + (2 * 86400 + 14 * 3600 + 26 * 60 + 40) * 1000;
+  const cdD = document.getElementById('cdD'), cdH = document.getElementById('cdH'),
+        cdM = document.getElementById('cdM'), cdS = document.getElementById('cdS');
+  const p2 = n => String(n).padStart(2, '0');
+  function tickCd() {
+    let diff = roastTarget - Date.now();
+    if (diff <= 0) { roastTarget = Date.now() + 7 * 86400000; diff = 7 * 86400000; }
+    cdD.textContent = p2(Math.floor(diff / 86400000));
+    cdH.textContent = p2(Math.floor(diff / 3600000) % 24);
+    cdM.textContent = p2(Math.floor(diff / 60000) % 60);
+    cdS.textContent = p2(Math.floor(diff / 1000) % 60);
+  }
+  tickCd();
+  setInterval(tickCd, 1000);
+
+  // 会员计划按钮
+  document.querySelectorAll('.p-btn').forEach(btn => btn.onclick = () => {
+    const email = document.getElementById('email');
+    if (btn.dataset.plan === 'monthly') {
+      email.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => email.focus({ preventScroll: true }), 600);
+      showToast('🎁 填写邮箱即可锁定新人 8 折');
+    } else if (btn.dataset.plan === 'trial') {
+      showToast('🛒 尝鲜装已加入心愿单，快去挑选豆子吧～');
+    } else {
+      showToast('📩 黑卡咨询已登记，稍后会有顾问联系你');
+    }
+  });
+
+  // FAQ 手风琴
+  document.querySelectorAll('.faq-q').forEach(q => q.onclick = () => {
+    const item = q.parentElement;
+    const ans = item.querySelector('.faq-a');
+    const wasOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item.open').forEach(o => {
+      o.classList.remove('open');
+      o.querySelector('.faq-a').style.maxHeight = 0;
+    });
+    if (!wasOpen) {
+      item.classList.add('open');
+      ans.style.maxHeight = ans.scrollHeight + 'px';
+    }
+  });
+
+  // 订阅按钮
+  document.getElementById('joinBtn').onclick = () => {
+    const email = document.getElementById('email');
+    const tip = document.getElementById('joinTip');
+    tip.style.opacity = 1;
+    if (/^\S+@\S+\.\S+$/.test(email.value)) {
+      tip.textContent = '🎉 优惠券已发放，请注意查收邮箱！';
+      email.value = '';
+    } else {
+      tip.textContent = '请输入有效的邮箱地址哦～';
+    }
+  };
+
+  // 冲煮计时器
+  const brewRecipes = {
+    v60: { total: 150, label: 'V60', steps: [
+      [0, '研磨中细砂糖颗粒度，润湿滤纸、温杯'],
+      [8, '注水 30ml 闷蒸，等待 30 秒'],
+      [38, '第一次螺旋注水，至 120ml'],
+      [75, '第二次注水，至 225ml'],
+      [127, '轻微晃杯，让粉层平整'],
+      [148, '粉床平满，准备收水']
+    ]},
+    espresso: { total: 27, label: '意式', steps: [
+      [0, '布粉压粉，确保粉饼均匀'],
+      [4, '预浸泡开始，观察是否均匀渗水'],
+      [15, '液面呈蜂蜜状，crema 出现'],
+      [26, '接近 36g，准备关泵']
+    ]},
+    cold: { total: 60, label: '冷萃·演示', steps: [
+      [0, '粗研磨，30g 粉 + 240ml 冰水'],
+      [18, '密封冷藏（演示加速：1 秒 ≈ 24 分钟）'],
+      [40, '轻搅一次，继续浸泡'],
+      [57, '滤纸过滤，加冰或兑奶']
+    ]}
+  };
+  const tRing = document.getElementById('tRing');
+  const tTime = document.getElementById('tTime');
+  const tStep = document.getElementById('tStep');
+  const tGo = document.getElementById('tGo');
+  let brew = { key: 'v60', elapsed: 0, timer: null };
+
+  const fmtT = s => String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+  function brewRender() {
+    const r = brewRecipes[brew.key];
+    const remain = Math.max(0, r.total - brew.elapsed);
+    tTime.textContent = fmtT(remain);
+    tRing.style.setProperty('--p', Math.min(100, brew.elapsed / r.total * 100).toFixed(1));
+    tGo.textContent = brew.timer ? '❚❚ 暂停'
+      : brew.elapsed === 0 ? '▶ 开始冲煮'
+      : remain === 0 ? '↺ 再冲一杯' : '▶ 继续';
+    if (remain === 0) {
+      tStep.innerHTML = '<b>☕ 冲煮完成</b>　趁热享用，风味最佳';
+    } else if (brew.timer || brew.elapsed > 0) {
+      let cur = r.steps[0][1];
+      r.steps.forEach(([t, txt]) => { if (brew.elapsed >= t) cur = txt; });
+      tStep.innerHTML = '<b>' + r.label + ' · ' + fmtT(brew.elapsed) + '</b>　' + cur;
+    }
+  }
+  function brewTick() {
+    const r = brewRecipes[brew.key];
+    brew.elapsed = Math.min(r.total, brew.elapsed + 0.1);
+    if (brew.elapsed >= r.total) {
+      clearInterval(brew.timer); brew.timer = null;
+      showToast('☕ 冲煮完成，趁热享用！');
+    }
+    brewRender();
+  }
+  tGo.onclick = () => {
+    if (brew.timer) { clearInterval(brew.timer); brew.timer = null; brewRender(); return; }
+    if (brew.elapsed >= brewRecipes[brew.key].total) brew.elapsed = 0;
+    brew.timer = setInterval(brewTick, 100);
+    brewRender();
+  };
+  document.getElementById('tReset').onclick = () => {
+    clearInterval(brew.timer); brew.timer = null; brew.elapsed = 0; brewRender();
+  };
+  document.querySelectorAll('.t-preset').forEach(b => b.onclick = () => {
+    document.querySelectorAll('.t-preset').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    clearInterval(brew.timer); brew.timer = null; brew.key = b.dataset.t; brew.elapsed = 0; brewRender();
+  });
+  brewRender();
+
+  // 礼品卡
+  const giftAmount = document.getElementById('giftAmount');
+  document.querySelectorAll('.gift-opt').forEach(b => b.onclick = () => {
+    document.querySelectorAll('.gift-opt').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    giftAmount.textContent = b.dataset.amt;
+  });
+  document.getElementById('giftBtn').onclick = () => {
+    showToast('🎁 ¥' + giftAmount.textContent + ' 礼品卡已生成（演示），去送给重要的人吧');
+  };
+
+  // 评价轮播
+  const qTrack = document.getElementById('quotesTrack');
+  const qDots = document.getElementById('qDots');
+  const qCount = qTrack.children.length;
+  let qIdx = 0, qTimer;
+  for (let i = 0; i < qCount; i++) {
+    const d = document.createElement('button');
+    d.className = 'quotes-dot' + (i === 0 ? ' active' : '');
+    d.setAttribute('aria-label', '第 ' + (i + 1) + ' 条评价');
+    d.onclick = () => { qGo(i); qAuto(); };
+    qDots.appendChild(d);
+  }
+  function qGo(i) {
+    qIdx = (i + qCount) % qCount;
+    qTrack.style.transform = 'translateX(-' + qIdx * 100 + '%)';
+    qDots.querySelectorAll('.quotes-dot').forEach((d, j) => d.classList.toggle('active', j === qIdx));
+  }
+  function qAuto() {
+    clearInterval(qTimer);
+    qTimer = setInterval(() => qGo(qIdx + 1), 5000);
+  }
+  document.getElementById('qPrev').onclick = () => { qGo(qIdx - 1); qAuto(); };
+  document.getElementById('qNext').onclick = () => { qGo(qIdx + 1); qAuto(); };
+  const sliderEl = document.querySelector('.quotes-slider');
+  sliderEl.addEventListener('mouseenter', () => clearInterval(qTimer));
+  sliderEl.addEventListener('mouseleave', qAuto);
+  qAuto();
+  // 冲煮比例计算器
+  const ratioProfiles = {
+    v60:     { defaultRatio: 15, temp: '90–94℃',  grind: '中细砂糖颗粒度', time: '2:00–3:00', unit: 'ml' },
+    espresso:{ defaultRatio: 2,  temp: '93℃',     grind: '细砂糖偏细',     time: '25–30s',   unit: 'g'  },
+    cold:    { defaultRatio: 8,  temp: '常温冰水',  grind: '粗研磨',         time: '12h',      unit: 'ml' }
+  };
+  const ratioHints = {
+    v60:      '💡 手冲偏酸可延长时长或调粗研磨，偏苦则反向调整。',
+    espresso: '💡 意式偏酸延长萃取时长，偏苦则调短或调粗研磨。',
+    cold:     '💡 冷萃偏酸延长浸泡或调粗研磨，偏苦则缩短并调细。'
+  };
+  const ratioState = { method: 'v60', dose: 15, ratio: 15 };
+  function ratioOut() {
+    const dose  = Math.max(1, ratioState.dose  | 0);
+    const ratio = Math.max(1, ratioState.ratio | 0);
+    const p = ratioProfiles[ratioState.method];
+    document.getElementById('rWater').textContent = dose * ratio + ' ' + p.unit;
+    document.getElementById('rTemp').textContent  = p.temp;
+    document.getElementById('rGrind').textContent = p.grind;
+    document.getElementById('rTime').textContent  = p.time;
+    document.getElementById('rHint').textContent  = ratioHints[ratioState.method];
+  }
+  document.getElementById('rMethods').addEventListener('click', e => {
+    const b = e.target.closest('button[data-m]');
+    if (!b) return;
+    document.querySelectorAll('#rMethods .r-chip').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    ratioState.method = b.dataset.m;
+    ratioState.ratio  = ratioProfiles[ratioState.method].defaultRatio;
+    document.querySelectorAll('#rRatios .r-chip').forEach(x =>
+      x.classList.toggle('active', +x.dataset.r === ratioState.ratio));
+    ratioOut();
+  });
+  document.getElementById('rRatios').addEventListener('click', e => {
+    const b = e.target.closest('button[data-r]');
+    if (!b) return;
+    document.querySelectorAll('#rRatios .r-chip').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    ratioState.ratio = +b.dataset.r;
+    ratioOut();
+  });
+  document.getElementById('rDose').addEventListener('input', e => {
+    ratioState.dose = Math.max(1, +e.target.value || 15);
+    ratioOut();
+  });
+  ratioOut();
+</script>
+</body>
+</html>
