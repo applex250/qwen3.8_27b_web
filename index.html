@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="拾光咖啡——精选全球四大产区精品豆，小批量新鲜烘焙，48 小时新鲜送达。">
+<meta name="theme-color" content="#2b1d16">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%232b1d16'/%3E%3Ctext x='50' y='69' font-size='52' text-anchor='middle' font-family='sans-serif' font-weight='bold' fill='%23e8a765'%3E%E6%8B%BE%3C/text%3E%3C/svg%3E">
+<meta property="og:type" content="website">
+<meta property="og:title" content="拾光咖啡 · 把时间泡进一杯好咖啡">
+<meta property="og:description" content="精选全球四大产区精品豆，小批量新鲜烘焙，48 小时新鲜送达。">
+<meta property="og:image" content="preview.png">
+<meta name="twitter:card" content="summary_large_image">
 <title>拾光咖啡 · 把时间泡进一杯好咖啡</title>
 <style>
   :root{
@@ -26,6 +33,11 @@
     overflow-x:hidden;
   }
   ::selection{background:var(--amber);color:#fff}
+
+  /* 跳转链接（无障碍） */
+  .skip-link{position:fixed;top:-60px;left:16px;z-index:999;background:var(--espresso);color:#fff;
+    padding:10px 18px;border-radius:0 0 12px 12px;font-size:.85rem;text-decoration:none;transition:top .3s}
+  .skip-link:focus{top:0}
 
   /* ---------- 导航 ---------- */
   .nav{
@@ -95,6 +107,11 @@
     transition:all .35s;max-width:88vw;
   }
   .toast.show{opacity:1;transform:translate(-50%,0)}
+
+  /* 购物袋 · 包邮进度条 */
+  .ship-bar{height:5px;border-radius:99px;background:rgba(43,29,22,.1);overflow:hidden;margin-bottom:12px}
+  .ship-bar i{display:block;height:100%;width:0;border-radius:99px;
+    background:linear-gradient(90deg,var(--amber-soft),var(--amber));transition:width .5s ease}
 
   /* ---------- 购物袋抽屉 ---------- */
   .cart-overlay{position:fixed;inset:0;z-index:240;background:rgba(43,29,22,.45);
@@ -381,6 +398,11 @@
   .add-btn{background:var(--espresso);color:#fff;border:none;border-radius:999px;
     padding:9px 16px;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .3s;white-space:nowrap}
   .add-btn:hover{background:var(--amber);transform:translateY(-2px)}
+  .brew-tip{margin:2px 0 14px;padding:8px 12px;border-radius:10px;
+    background:var(--cream-2);border:1px dashed rgba(43,29,22,.14);
+    font-size:.75rem;color:var(--cocoa);letter-spacing:.02em;
+    display:flex;align-items:center;gap:6px}
+  .brew-tip b{color:var(--amber);font-weight:700}
 
   /* 产品筛选 */
   .filters{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-bottom:40px}
@@ -541,6 +563,10 @@
   .faq-item.open .pm{transform:rotate(45deg)}
   .faq-a{max-height:0;overflow:hidden;transition:max-height .4s ease}
   .faq-a p{padding:0 24px 22px;color:var(--cocoa);font-size:.9rem}
+  .faq-more{margin-top:30px;text-align:center;color:#9b8a78;font-size:.9rem}
+  .faq-more-btn{background:none;border:none;cursor:pointer;font-family:inherit;font-size:.9rem;
+    font-weight:700;color:var(--amber);padding:0 2px;transition:color .3s}
+  .faq-more-btn:hover{color:var(--espresso)}
 
   /* ---------- CTA ---------- */
   .cta-box{
@@ -663,10 +689,47 @@
   .curve-pts circle{fill:var(--espresso);stroke:#fff;stroke-width:2}
   .curve-line{stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset 2.2s ease .2s}
   .curve-wrap.show .curve-line{stroke-dashoffset:0}
+
+  /* ---------- 联系弹窗 ---------- */
+  .modal-overlay{position:fixed;inset:0;z-index:255;background:rgba(43,29,22,.5);
+    backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .35s}
+  .modal-overlay.show{opacity:1;pointer-events:auto}
+  .modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-46%) scale(.96);
+    width:min(440px,92vw);max-height:86dvh;overflow-y:auto;z-index:260;
+    background:var(--cream);border-radius:22px;box-shadow:0 30px 80px rgba(43,29,22,.3);
+    opacity:0;pointer-events:none;transition:all .35s cubic-bezier(.2,.8,.2,1)}
+  .modal.show{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+  .modal-head{display:flex;align-items:center;justify-content:space-between;
+    padding:22px 24px 16px;border-bottom:1px solid rgba(43,29,22,.1)}
+  .modal-head h3{font-size:1.1rem;font-weight:800}
+  .modal-head .close{width:36px;height:36px;border-radius:50%;border:none;cursor:pointer;
+    background:rgba(43,29,22,.08);font-size:1rem;color:var(--cocoa);transition:all .3s;line-height:1}
+  .modal-head .close:hover{background:var(--espresso);color:#fff;transform:rotate(90deg)}
+  .modal-body{padding:20px 24px 26px;display:grid;gap:14px}
+  .f-label{display:flex;flex-direction:column;gap:7px;font-size:.8rem;color:#9b8a78;font-weight:600}
+  .f-input{border:1.5px solid rgba(43,29,22,.18);border-radius:12px;padding:11px 14px;
+    font-size:.92rem;font-family:inherit;color:var(--espresso);background:#fff;
+    transition:border-color .3s,box-shadow .3s;resize:vertical}
+  .f-input:focus{outline:none;border-color:var(--amber);box-shadow:0 0 0 3px rgba(201,123,61,.18)}
+  .f-submit{width:100%;border:none;padding:13px;font-size:.98rem;margin-top:4px}
+  .modal-note{font-size:.75rem;color:#9b8a78;text-align:center}
+
+  /* ---------- 打印 ---------- */
+  @media print{
+    .nav,.progress,.to-top,.toast,.skip-link,.marquee,.scroll-hint,.hero-art,
+    .cart-overlay,.cart-drawer,.modal-overlay,.modal,.batch,.filters,
+    .btn-primary,.btn-ghost,.add-btn,.p-btn,.gift-options,.t-controls,.t-presets,
+    .t-ring,.t-step,.ratios{display:none!important}
+    body{background:#fff}
+    .reveal{opacity:1!important;transform:none!important}
+    section{padding:28px 4vw}
+    *{box-shadow:none!important}
+  }
 </style>
 </head>
 <body>
 
+<a class="skip-link" href="#products">跳到主要内容</a>
 <div class="progress" id="progress"></div>
 
 <!-- 导航 -->
@@ -677,12 +740,12 @@
     <li><a href="#about">品牌故事</a></li>
     <li><a href="#brew">冲煮指南</a></li>
     <li><a href="#stores">线下门店</a></li>
-    <lI><a href="#reviews">用户评价</a></li>
+    <li><a href="#reviews">用户评价</a></li>
     <li><a href="#join">会员计划</a></li>
   </ul>
   <div class="nav-actions">
     <button class="nav-cart" id="cartBtn" aria-label="购物袋">🛒<span class="count" id="cartCount">0</span></button>
-    <button class="nav-cta" onclick="location.href='#join'">立即订阅</button>
+    <button class="nav-cta" id="navCta">立即订阅</button>
   </div>
   <button class="menu-btn" id="menuBtn" aria-label="菜单">☰</button>
 </nav>
@@ -752,6 +815,7 @@
         <div class="flavor"><span>甜感</span><div class="bar"><i style="--w:78%"></i></div><em>78</em></div>
       </div>
       <div class="roast"><span>烘焙度</span><i class="on"></i><i class="on"></i><i></i><i></i><i></i><em>浅焙</em></div>
+      <div class="brew-tip">⏱ 推荐 <b>V60 手冲</b> · 1:15 · 92℃ · 约 2:30</div>
       <div class="card-foot">
         <div class="price">¥88 <small>/ 200g</small></div>
         <button class="add-btn" data-name="耶加雪菲 · 水洗">＋ 加入购物袋</button>
@@ -769,6 +833,7 @@
         <div class="flavor"><span>甜感</span><div class="bar"><i style="--w:90%"></i></div><em>90</em></div>
       </div>
       <div class="roast"><span>烘焙度</span><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><em>中焙</em></div>
+      <div class="brew-tip">⏱ 推荐 <b>V60 手冲</b> · 1:16 · 90℃ · 约 2:30</div>
       <div class="card-foot">
         <div class="price">¥108 <small>/ 200g</small></div>
         <button class="add-btn" data-name="哥伦比亚 · 厌氧">＋ 加入购物袋</button>
@@ -785,6 +850,7 @@
         <div class="flavor"><span>甜感</span><div class="bar"><i style="--w:60%"></i></div><em>60</em></div>
       </div>
       <div class="roast"><span>烘焙度</span><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><em>中深焙</em></div>
+      <div class="brew-tip">⚡ 推荐 <b>意式浓缩</b> · 1:2 · 93℃ · 25–30s</div>
       <div class="card-foot">
         <div class="price">¥92 <small>/ 200g</small></div>
         <button class="add-btn" data-name="曼特宁 · 古法">＋ 加入购物袋</button>
@@ -805,6 +871,7 @@
         <div class="flavor"><span>甜感</span><div class="bar"><i style="--w:85%"></i></div><em>85</em></div>
       </div>
       <div class="roast"><span>烘焙度</span><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><em>中焙</em></div>
+      <div class="brew-tip">⏱ 推荐 <b>V60 手冲</b> · 1:15 · 93℃ · 约 2:30</div>
       <div class="card-foot">
         <div class="price">¥68 <small>/ 200g</small></div>
         <button class="add-btn" data-name="云南日晒 · 限定">＋ 加入购物袋</button>
@@ -825,6 +892,7 @@
         <div class="flavor"><span>甜感</span><div class="bar"><i style="--w:88%"></i></div><em>88</em></div>
       </div>
       <div class="roast"><span>烘焙度</span><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><em>中焙</em></div>
+      <div class="brew-tip">🧊 推荐 <b>冰滴冷萃</b> · 1:8 · 常温 · 12h（热冲亦可）</div>
       <div class="card-foot">
         <div class="price">¥78 <small>/ 200g</small></div>
         <button class="add-btn" data-name="桂花 · 云南 秋">＋ 加入购物袋</button>
@@ -1366,6 +1434,9 @@
       <div class="faq-a"><p>上海徐汇区有 1 家旗舰体验店（漕溪北路 88 号 2F），欢迎预约来喝一杯当季新品。</p></div>
     </div>
   </div>
+  <div class="faq-more reveal">
+    还有其他问题？<button class="faq-more-btn" data-contact="其他">💬 联系客服</button>，工作日 8:00–20:00 在线。
+  </div>
 </section>
 
 <!-- 页脚 -->
@@ -1392,7 +1463,7 @@
         <li><a href="#about">品牌故事</a></li>
         <li><a href="#origins">产区直采</a></li>
         <li><a href="#stores">线下门店</a></li>
-        <li><a href="#">加入我们</a></li>
+        <li><a href="#" data-contact="其他">加入我们</a></li>
       </ul>
     </div>
     <div>
@@ -1400,7 +1471,7 @@
       <ul>
         <li><a href="#brew">冲煮指南</a></li>
         <li><a href="#faq">常见问题</a></li>
-        <li><a href="#">联系客服</a></li>
+        <li><a href="#" data-contact="订单与物流">联系客服</a></li>
       </ul>
     </div>
     <div>
@@ -1425,6 +1496,7 @@
   </div>
   <div class="cart-body" id="cartItems"></div>
   <div class="cart-foot">
+    <div class="ship-bar" id="shipBar" aria-hidden="true"><i id="shipFill"></i></div>
     <div class="cart-sub">
       <span>小计（满 ¥99 包邮）</span>
       <b>¥<span id="cartTotal">0</span><em></em></b>
@@ -1434,9 +1506,45 @@
 </aside>
 
 <button class="to-top" id="toTop" aria-label="回到顶部">↑</button>
+
+<!-- 联系/咨询弹窗 -->
+<div class="modal-overlay" id="contactOverlay"></div>
+<div class="modal" id="contactModal" role="dialog" aria-modal="true" aria-labelledby="contactTitle" aria-hidden="true">
+  <div class="modal-head">
+    <h3 id="contactTitle">💬 联系我们</h3>
+    <button class="close" id="contactClose" aria-label="关闭">✕</button>
+  </div>
+  <form class="modal-body" id="contactForm" novalidate>
+    <label class="f-label">咨询主题
+      <select class="f-input" id="cfTopic">
+        <option>订单与物流</option>
+        <option>豆子与订阅</option>
+        <option>门店到店</option>
+        <option>合作与商务</option>
+        <option>其他</option>
+      </select>
+    </label>
+    <label class="f-label">你的联系方式（选填）
+      <input class="f-input" id="cfContact" type="text" placeholder="手机号或邮箱">
+    </label>
+    <label class="f-label">想说的话
+      <textarea class="f-input" id="cfMsg" rows="4" placeholder="告诉我们你的问题或想法…"></textarea>
+    </label>
+    <button class="btn-primary f-submit" type="submit">发送消息</button>
+    <p class="modal-note">演示页面 · 消息不会被真的发送</p>
+  </form>
+</div>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
+  console.log('%c☕ 拾光咖啡 SHIGUANG COFFEE %c单文件演示页 · 把时间泡进一杯好咖啡',
+    'font-size:15px;font-weight:800;color:#c97b3d', 'color:#5a4232');
+
+  // 导航「立即订阅」平滑滚动
+  document.getElementById('navCta').onclick = () =>
+    document.getElementById('join').scrollIntoView({ behavior: 'smooth' });
+
   // 导航滚动态 + 进度条 + 回顶按钮
   const nav = document.getElementById('nav');
   const progress = document.getElementById('progress');
@@ -1507,6 +1615,18 @@
 
   // 购物袋（抽屉）
   const cart = new Map(); // name -> {name, price, emoji, qty}
+  const LS_KEY = 'shiguang.cart.v1';
+  const saveCart = () => { try { localStorage.setItem(LS_KEY, JSON.stringify([...cart.values()])); } catch (e) {} };
+  try { // 刷新后恢复购物袋
+    const raw = localStorage.getItem(LS_KEY);
+    if (raw) {
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr)) arr.forEach(i => {
+        if (i && typeof i.name === 'string' && i.price > 0 && i.qty > 0)
+          cart.set(i.name, { name: i.name, price: i.price, emoji: i.emoji || '☕', qty: i.qty | 0 });
+      });
+    }
+  } catch (e) {}
   const cartCountEl = document.getElementById('cartCount');
   const cartHeadCount = document.getElementById('cartHeadCount');
   const drawer = document.getElementById('cartDrawer');
@@ -1521,8 +1641,10 @@
   function renderCart() {
     const qty = cartQty(), sum = cartSum();
     cartCountEl.textContent = qty;
+    cartCountEl.style.display = qty ? '' : 'none';
     cartHeadCount.textContent = qty ? '（' + qty + ' 件）' : '';
     totalEl.textContent = sum;
+    document.getElementById('shipFill').style.width = Math.min(100, sum / FREE_SHIP * 100) + '%';
     document.querySelector('.cart-sub span').textContent =
       sum >= FREE_SHIP ? '小计 · 已免运费 🎉' : '小计（满 ¥' + FREE_SHIP + ' 包邮，还差 ¥' + (FREE_SHIP - sum) + '）';
     if (cart.size === 0) {
@@ -1549,6 +1671,7 @@
     it.qty++;
     cart.set(name, it);
     renderCart();
+    saveCart();
     cartCountEl.classList.remove('bump');
     void cartCountEl.offsetWidth;
     cartCountEl.classList.add('bump');
@@ -1560,7 +1683,7 @@
   document.getElementById('cartBtn').onclick = openCart;
   document.getElementById('cartClose').onclick = closeCart;
   overlay.onclick = closeCart;
-  addEventListener('keydown', e => { if (e.key === 'Escape') closeCart(); });
+  addEventListener('keydown', e => { if (e.key === 'Escape') { closeContact(); closeCart(); } });
 
   itemsEl.addEventListener('click', e => {
     const b = e.target.closest('button[data-act]');
@@ -1569,15 +1692,20 @@
     if (b.dataset.act === 'inc') it.qty++;
     else { it.qty--; if (it.qty <= 0) cart.delete(it.name); }
     renderCart();
+    saveCart();
   });
 
   document.getElementById('cartCheckout').onclick = () => {
     if (cart.size === 0) { showToast('购物袋还是空的，去挑一款吧～'); return; }
     const sum = cartSum();
-    showToast('✅ 下单成功（演示）· 合计 ¥' + sum + '，48h 内发出');
+    const d = new Date();
+    const ord = 'SG' + d.getFullYear() + p2(d.getMonth() + 1) + p2(d.getDate()) + '-' +
+      Math.random().toString(36).slice(2, 6).toUpperCase();
+    showToast('✅ 下单成功（' + ord + ' · 演示）· 合计 ¥' + sum + '，48h 内发出');
     cart.clear();
+    saveCart();
     renderCart();
-    setTimeout(closeCart, 800);
+    setTimeout(closeCart, 900);
   };
 
   // 产品筛选
@@ -1648,6 +1776,9 @@
       tip.textContent = '请输入有效的邮箱地址哦～';
     }
   };
+  document.getElementById('email').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('joinBtn').click();
+  });
 
   // 冲煮计时器
   const brewRecipes = {
@@ -1758,6 +1889,23 @@
   sliderEl.addEventListener('mouseenter', () => clearInterval(qTimer));
   sliderEl.addEventListener('mouseleave', qAuto);
   qAuto();
+  // 键盘左右键 + 触屏滑动切换
+  sliderEl.setAttribute('tabindex', '0');
+  sliderEl.setAttribute('role', 'group');
+  sliderEl.setAttribute('aria-label', '用户评价轮播，可用左右方向键切换');
+  sliderEl.addEventListener('keydown', e => {
+    if (e.key === 'ArrowLeft') document.getElementById('qPrev').click();
+    else if (e.key === 'ArrowRight') document.getElementById('qNext').click();
+  });
+  let qSwipeX = null;
+  sliderEl.addEventListener('pointerdown', e => { qSwipeX = e.clientX; });
+  sliderEl.addEventListener('pointerup', e => {
+    if (qSwipeX === null) return;
+    const dx = e.clientX - qSwipeX;
+    qSwipeX = null;
+    if (Math.abs(dx) < 40) return;
+    (dx < 0 ? document.getElementById('qNext') : document.getElementById('qPrev')).click();
+  });
   // 冲煮比例计算器
   const ratioProfiles = {
     v60:     { defaultRatio: 15, temp: '90–94℃',  grind: '中细砂糖颗粒度', time: '2:00–3:00', unit: 'ml' },
@@ -1804,6 +1952,37 @@
     ratioOut();
   });
   ratioOut();
+
+  // 联系/咨询弹窗
+  const contactModal = document.getElementById('contactModal');
+  const contactOverlay = document.getElementById('contactOverlay');
+  function openContact(topic) {
+    contactOverlay.classList.add('show');
+    contactModal.classList.add('show');
+    contactModal.setAttribute('aria-hidden', 'false');
+    if (topic) document.getElementById('cfTopic').value = topic;
+    setTimeout(() => document.getElementById('cfMsg').focus({ preventScroll: true }), 350);
+  }
+  function closeContact() {
+    if (!contactModal.classList.contains('show')) return;
+    contactOverlay.classList.remove('show');
+    contactModal.classList.remove('show');
+    contactModal.setAttribute('aria-hidden', 'true');
+  }
+  document.getElementById('contactClose').onclick = closeContact;
+  contactOverlay.onclick = closeContact;
+  document.querySelectorAll('[data-contact]').forEach(b => b.addEventListener('click', e => {
+    e.preventDefault();
+    openContact(b.dataset.contact);
+  }));
+  document.getElementById('contactForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const msg = document.getElementById('cfMsg');
+    if (!msg.value.trim()) { msg.focus(); showToast('先写点什么再发送吧～'); return; }
+    showToast('✅ 消息已发送（演示）· 1 个工作日内回复你');
+    e.target.reset();
+    setTimeout(closeContact, 700);
+  });
 </script>
 </body>
 </html>
