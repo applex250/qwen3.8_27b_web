@@ -12,7 +12,7 @@
 都写在**同一个 HTML 文件**里，不含任何外部资源、前端框架或构建步骤——
 视觉全部由 emoji / CSS / 内联 SVG 完成，无位图资产。用浏览器直接打开即可运行。
 
-- 入口：[`index.html`](./index.html)（约 91 KB）
+- 入口：[`index.html`]([./index.html](https://applex250.github.io/qwen3.8_27b_web/))（约 91 KB）
 - 无外部依赖：无 CDN、无字体文件、无图片资源、无 npm / 打包器
 
 ## 页面包含（演示功能）
